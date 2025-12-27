@@ -3,3 +3,18 @@
 *.bak
 *.bak.html
 *.BACKUP_*
+
+# Local noise
+*.log
+*.pid
+*.bak*
+*.jpg
+*.JPG
+*.png
+*.tgz
+OMEGA_EMPIRE/
+QDS_MARKET_PACKS/
+QDS_Battery_Lab/
+QDS_BATTERY_LOGS/
+QDS_logs/
+news_rips/
