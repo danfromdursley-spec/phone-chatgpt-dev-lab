@@ -969,35 +969,29 @@
 </script>
 
 
+
+
 <script id="qds-fairness-patch-v3">
 (() => {
   const ts=()=>{const d=new Date();const p=n=>String(n).padStart(2,"0");return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;};
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
 
-  // Badge
+  // badge
   const badge=document.createElement("div");
-  badge.textContent="FAIRFIX v3.2: armed";
+  badge.textContent="FAIRFIX v3.3: armed";
   badge.style.cssText="position:fixed;z-index:999999;right:10px;bottom:10px;padding:8px 10px;border-radius:10px;font:12px/1.2 system-ui;background:rgba(0,0,0,.72);border:1px solid rgba(0,255,180,.55);color:#b9ffe9;box-shadow:0 6px 16px rgba(0,0,0,.35);max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
   const mount=()=>{try{(document.body||document.documentElement).appendChild(badge);}catch(e){}};
   if(document.body) mount(); else addEventListener("DOMContentLoaded",mount,{once:true});
 
-  // Logging
-  function findRunLogNode(){
-    return document.querySelector("#runLog,#log,.runlog,.log,pre.log,pre.runlog") || null;
-  }
+  // log
   const log=(msg)=>{
     const line=`[${ts()}] ${msg}`;
     const fn=window.log||window.addLog||window.pushLog||window.appendLog||window.logLine;
     if(typeof fn==="function"){ try{fn(line);return;}catch(e){} }
-    const n=findRunLogNode();
-    if(n){ if(n.tagName==="PRE") n.textContent=(n.textContent?n.textContent+"\n":"")+line;
-      else { const d=document.createElement("div"); d.textContent=line; n.appendChild(d); }
-      return;
-    }
     console.log(line);
   };
 
-  // UI shim (drive buttons, not hidden functions)
+  // find buttons
   const byText=(needle)=>{
     needle=needle.toLowerCase();
     const btns=[...document.querySelectorAll("button,[role='button'],a")];
@@ -1005,11 +999,40 @@
   };
   const btnReset=byText("reset");
   const btnStep =byText("step");
-  const btnFair =byText("fairness");
 
-  window.QDS_ARENA = window.QDS_ARENA || {};
-  if(btnReset) window.QDS_ARENA.uiReset = () => btnReset.click();
-  if(btnStep)  window.QDS_ARENA.uiStep  = () => btnStep.click();
+  // find seed input (common patterns)
+  function seedInput(){
+    return document.querySelector(
+      'input[id*="seed" i],input[name*="seed" i],input[data-seed],input[aria-label*="seed" i]'
+    );
+  }
+
+  // apply seed the SAME way the app would (state + input + events)
+  function applySeed(s){
+    s = (s>>>0);
+    if (window.state) window.state.seed = s;
+
+    const el = seedInput();
+    if (el){
+      try{
+        el.value = String(s);
+        el.dispatchEvent(new Event("input", {bubbles:true}));
+        el.dispatchEvent(new Event("change", {bubbles:true}));
+      }catch(e){}
+    }
+    // optional hook if your app exposes one
+    if (typeof window.setSeed==="function"){
+      try{ window.setSeed(s); }catch(e){}
+    }
+  }
+
+  // seed source for base
+  const getSeed=()=>{
+    if(window.state && Number.isFinite(window.state.seed)) return (window.state.seed>>>0);
+    const el=seedInput();
+    const v=el?Number(el.value):NaN;
+    return Number.isFinite(v)?(v>>>0):7;
+  };
 
   const fairnessSeeds=(base,n=20)=>{
     let x=(base>>>0)||1; const out=[];
@@ -1017,12 +1040,7 @@
     return out;
   };
 
-  const getSeed=()=>{
-    if(window.state && Number.isFinite(window.state.seed)) return (window.state.seed>>>0);
-    const el=document.querySelector('input[id*="seed" i],input[name*="seed" i]');
-    const v=el?Number(el.value):NaN; return Number.isFinite(v)?(v>>>0):7;
-  };
-
+  // delta (best-effort)
   const delta=()=>{
     const st=window.state, g=st&&st.grid; if(!g) return 0;
     let c1=0,c2=0,n=0;
@@ -1034,59 +1052,49 @@
     return n? (c1/n)-(c2/n) : 0;
   };
 
-  async function runStepsYield(n, batch=50){
-    if(!window.QDS_ARENA.uiStep) throw new Error("No Step button found for UI stepping.");
+  async function runStepsYield(n,batch=50){
+    if(!btnStep) throw new Error("No Step button found.");
     for(let i=0;i<n;i++){
-      window.QDS_ARENA.uiStep();
-      if(i && (i%batch===0)) await sleep(0); // yield to UI
+      btnStep.click();
+      if(i && (i%batch===0)) await sleep(0);
     }
   }
 
   let running=false;
-  let wake=null;
-  async function acquireWake(){
-    try{
-      if(navigator.wakeLock && navigator.wakeLock.request){
-        wake = await navigator.wakeLock.request("screen");
-      }
-    }catch(e){}
-  }
-  function releaseWake(){ try{ if(wake){ wake.release(); wake=null; } }catch(e){} }
-
   async function runFairness(){
     if(running) return;
     running=true;
-    await acquireWake();
-
     try{
-      if(!window.QDS_ARENA.uiReset) throw new Error("No Reset button found for UI reset.");
+      if(!btnReset) throw new Error("No Reset button found.");
       const base=getSeed();
       const seeds=fairnessSeeds(base,20);
 
-      log(`Fairness check (v3.2 async): baseSeed=${base} seeds=[${seeds.join(",")}] steps=200…`);
-      badge.textContent="FAIRFIX v3.2: running…";
+      log(`Fairness check (v3.3): baseSeed=${base} seeds=[${seeds.join(",")}] steps=200…`);
+      badge.textContent="FAIRFIX v3.3: running…";
 
       const ds=[];
       for(let i=0;i<seeds.length;i++){
-        if(window.state) window.state.seed = seeds[i];
-        window.QDS_ARENA.uiReset();
+        applySeed(seeds[i]);
+        btnReset.click();
         await sleep(0);
-        await runStepsYield(200, 50);
+        await runStepsYield(200,50);
         const d=delta(); ds.push(d);
-        badge.textContent=`FAIRFIX v3.2: seed ${i+1}/20`;
-        if(i<3) log(`seed=${seeds[i]} Δ=${d.toFixed(3)}`);
+
+        // sanity: read back what the app thinks the seed is
+        const back = getSeed();
+        if(i < 3) log(`seed(set=${seeds[i]} readback=${back}) Δ=${d.toFixed(3)}`);
+
+        badge.textContent=`FAIRFIX v3.3: ${i+1}/20`;
         await sleep(0);
       }
 
       const mean=ds.reduce((a,b)=>a+b,0)/ds.length;
       const maxAbs=Math.max(...ds.map(d=>Math.abs(d)));
       const pClose=ds.filter(d=>Math.abs(d)<=0.1).length/ds.length;
-      log(`Fairness summary (v3.2): mean Δ=${mean.toFixed(3)}, max |Δ|=${maxAbs.toFixed(3)}, P(|Δ|≤0.1)=${(100*pClose).toFixed(1)}%`);
-
-      badge.textContent="FAIRFIX v3.2: done ✅";
-      setTimeout(()=>badge.textContent="FAIRFIX v3.2: armed", 1200);
+      log(`Fairness summary (v3.3): mean Δ=${mean.toFixed(3)}, max |Δ|=${maxAbs.toFixed(3)}, P(|Δ|≤0.1)=${(100*pClose).toFixed(1)}%`);
+      badge.textContent="FAIRFIX v3.3: done ✅";
+      setTimeout(()=>badge.textContent="FAIRFIX v3.3: armed", 1200);
     } finally {
-      releaseWake();
       running=false;
     }
   }
@@ -1098,12 +1106,12 @@
     ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
     runFairness().catch(e=>{
       const msg=String(e && (e.message||e) || "unknown").slice(0,120);
-      badge.textContent="FAIRFIX v3.2 ERROR: "+msg;
-      log(`FAIRFIX v3.2 ERROR: ${msg}`);
+      badge.textContent="FAIRFIX v3.3 ERROR: "+msg;
+      log(`FAIRFIX v3.3 ERROR: ${msg}`);
     });
   }, true);
 
-  log("Fairfix v3.2 armed (async sweep + wake lock).");
+  log("FAIRFIX v3.3 armed (seed apply via input+events).");
 })();
 </script>
 
