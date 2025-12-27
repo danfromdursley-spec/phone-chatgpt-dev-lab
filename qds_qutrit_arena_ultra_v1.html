@@ -1125,5 +1125,43 @@
 })();
 </script>
 
+
+
+<script id="qds-boot-seed-v1">
+(() => {
+  const byText=(needle)=>{
+    needle=needle.toLowerCase();
+    const btns=[...document.querySelectorAll("button,[role='button'],a")];
+    return btns.find(b => (b.textContent||"").toLowerCase().includes(needle));
+  };
+  const seedInput=()=>document.querySelector('input[id*="seed" i],input[name*="seed" i],input[data-seed],input[aria-label*="seed" i]');
+  const applySeed=(s)=>{
+    s=(s>>>0);
+    if(window.state) window.state.seed=s;
+    const el=seedInput();
+    if(el){
+      el.value=String(s);
+      el.dispatchEvent(new Event("input",{bubbles:true}));
+      el.dispatchEvent(new Event("change",{bubbles:true}));
+    }
+    if(typeof window.setSeed==="function"){ try{window.setSeed(s);}catch(e){} }
+  };
+
+  addEventListener("DOMContentLoaded", () => {
+    const qs=new URLSearchParams(location.search);
+    if(qs.get("clear")==="1"){ try{localStorage.clear(); sessionStorage.clear();}catch(e){} }
+    const s=qs.get("seed");
+    if(s!=null && s!==""){
+      applySeed(Number(s));
+      const r=byText("reset"); r && r.click();
+      return;
+    }
+    if(qs.get("autoseed")==="1"){
+      const rz=byText("randomize"); rz && rz.click();
+    }
+  }, {once:true});
+})();
+</script>
+
 </body>
 </html>
