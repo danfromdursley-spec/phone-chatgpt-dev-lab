@@ -1,0 +1,5 @@
+
+# QDS local backups
+*.bak
+*.bak.html
+*.BACKUP_*
