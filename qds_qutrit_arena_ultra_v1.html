@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>QDS · Qutrit Arena — Ultra v1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --bg0:#05020b;
+    --bg1:#08051a;
+    --panel:#0b132c;
+    --border:rgba(255,255,255,0.08);
+    --text-main:#f5f7ff;
+    --text-soft:#98a0c0;
+    --accent-1:#ff3366; /* neon red   */
+    --accent-2:#ff9f1c; /* orange     */
+    --accent-3:#ffd447; /* yellow     */
+    --accent-4:#00ff99; /* neon green */
+    --radius-xl:22px;
+    --shadow-soft:0 0 24px rgba(0,0,0,0.8);
+  }
+
+  *{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text",
+                 "Segoe UI",Roboto,sans-serif;
+    color:var(--text-main);
+    background:
+      radial-gradient(circle at 0% 0%,#20102a 0,transparent 50%),
+      radial-gradient(circle at 100% 100%,#101b35 0,transparent 50%),
+      linear-gradient(135deg,#020008,#040510 45%,#050b1b);
+    display:flex;
+    justify-content:center;
+    padding:14px 10px 24px;
+  }
+
+  .shell{
+    width:100%;
+    max-width:960px;
+    background:radial-gradient(circle at 10% 0%,#151b3a 0,#050813 60%);
+    border-radius:28px;
+    border:1px solid rgba(255,255,255,0.06);
+    box-shadow:var(--shadow-soft),0 0 40px rgba(0,0,40,0.6);
+    padding:14px 12px 18px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .shell::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at 0% 0%,rgba(255,51,102,0.16),transparent 55%),
+      radial-gradient(circle at 100% 100%,rgba(0,255,153,0.12),transparent 60%);
+    mix-blend-mode:screen;
+    opacity:0.9;
+  }
+
+  .shell-inner{position:relative;z-index:1;}
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:8px;
+    margin-bottom:14px;
+  }
+
+  .title-block{display:flex;flex-direction:column;gap:4px;}
+
+  .pill-row{display:flex;flex-wrap:wrap;gap:4px;}
+
+  .pill{
+    font-size:11px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    padding:3px 8px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.16);
+    background:radial-gradient(circle at 0 0,rgba(255,255,255,0.05),transparent 55%);
+    color:var(--text-soft);
+    white-space:nowrap;
+  }
+  .pill.gold{
+    border-color:rgba(255,212,71,0.9);
+    color:#ffe58f;
+    background:linear-gradient(90deg,rgba(255,153,51,0.2),rgba(255,51,102,0.18));
+  }
+  .pill.green{
+    border-color:rgba(0,255,153,0.9);
+    color:#a9ffda;
+    background:linear-gradient(90deg,rgba(0,255,153,0.18),rgba(0,204,255,0.18));
+  }
+
+  h1{
+    margin:0;
+    font-size:20px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+  }
+
+  .subtitle{font-size:11px;color:var(--text-soft);}
+
+  .status-tag{
+    font-size:11px;
+    padding:4px 10px;
+    border-radius:999px;
+    background:radial-gradient(circle at 0 0,rgba(0,255,153,0.18),transparent 45%);
+    border:1px solid rgba(0,255,153,0.65);
+    color:#aaffe3;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .status-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--accent-4);
+    box-shadow:0 0 10px rgba(0,255,153,0.9);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+    gap:10px;
+  }
+  @media (max-width:720px){
+    .grid{grid-template-columns:minmax(0,1fr);}
+  }
+
+  .panel{
+    background:linear-gradient(145deg,rgba(5,10,30,0.96),rgba(3,5,18,0.98));
+    border-radius:var(--radius-xl);
+    border:1px solid var(--border);
+    padding:10px 10px 12px;
+    box-shadow:0 0 0 1px rgba(0,0,0,0.5);
+  }
+
+  .panel-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:8px;
+  }
+
+  .panel-title{
+    font-size:13px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+  }
+
+  .panel-sub{font-size:11px;color:var(--text-soft);}
+
+  label{
+    font-size:11px;
+    color:var(--text-soft);
+    display:block;
+    margin-bottom:3px;
+  }
+
+  input[type="number"],input[type="text"],input[type="range"]{
+    width:100%;
+    font-size:13px;
+  }
+
+  input[type="number"],input[type="text"],select{
+    padding:6px 8px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.14);
+    background:radial-gradient(circle at 0 0,rgba(255,255,255,0.03),transparent 60%);
+    color:var(--text-main);
+  }
+  input:focus,select:focus{
+    outline:none;
+    border-color:rgba(0,255,153,0.7);
+    box-shadow:0 0 0 1px rgba(0,255,153,0.4);
+  }
+
+  input[type="range"]{
+    -webkit-appearance:none;
+    background:transparent;
+  }
+  input[type="range"]::-webkit-slider-runnable-track{
+    height:4px;border-radius:999px;
+    background:linear-gradient(90deg,var(--accent-1),var(--accent-2),var(--accent-4));
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:16px;height:16px;border-radius:50%;
+    background:#fff;
+    box-shadow:0 0 10px rgba(0,0,0,0.8);
+    margin-top:-6px;
+  }
+
+  .btn-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+
+  button{
+    border:none;
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:13px;
+    cursor:pointer;
+    color:#050713;
+    background:linear-gradient(135deg,var(--accent-2),var(--accent-3));
+    box-shadow:0 0 12px rgba(255,159,28,0.75);
+  }
+  button.secondary{
+    color:var(--text-main);
+    background:linear-gradient(135deg,#161b30,#0c1324);
+    box-shadow:0 0 6px rgba(0,0,0,0.7);
+  }
+  button:active{
+    transform:translateY(1px);
+    box-shadow:0 0 4px rgba(0,0,0,0.9);
+  }
+
+  .sim-shell{
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.06);
+    background:radial-gradient(circle at 0 0,#050815,#02000a);
+    padding:8px;
+  }
+
+  canvas{
+    display:block;
+    width:100%;
+    max-width:100%;
+    height:auto;
+    border-radius:14px;
+    background:#020008;
+    image-rendering:pixelated;
+  }
+
+  .small{font-size:11px;color:var(--text-soft);}
+
+  .metrics-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+    margin-bottom:6px;
+  }
+  .metric-card{
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,0.07);
+    background:radial-gradient(circle at 0 0,rgba(255,255,255,0.03),transparent 60%);
+    padding:6px 7px;
+    font-size:11px;
+  }
+  .metric-label{color:var(--text-soft);margin-bottom:2px;}
+  .metric-value{font-size:14px;}
+
+  .log-box{
+    margin-top:8px;
+    font-family:"JetBrains Mono",SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:11px;
+    line-height:1.32;
+    max-height:150px;
+    overflow:auto;
+    padding:8px;
+    border-radius:16px;
+    background:radial-gradient(circle at 0 0,#02040a,#010108);
+    border:1px solid rgba(255,255,255,0.08);
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="shell-inner">
+    <header>
+      <div class="title-block">
+        <div class="pill-row">
+          <div class="pill">QDS · Qutrit Arena</div>
+          <div class="pill gold">Neon fairness sandbox · not advice</div>
+        </div>
+        <h1>Qutrit Arena — Ultra v1</h1>
+        <div class="subtitle">
+          Touch-first qutrit grid. 0 = empty, 1 = P1, 2 = P2. Same parameter stack as the old lab, new neon skin.
+        </div>
+      </div>
+      <div class="status-tag">
+        <span class="status-dot"></span>
+        <span>Offline · Touch-first · No deps</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: simulation + presets -->
+      <div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Simulation canvas</div>
+            <div class="panel-sub">
+              Tap / drag to paint · long-press toggles P1⇄P2 · two-finger = erase to 0
+            </div>
+          </div>
+          <div class="sim-shell">
+            <canvas id="arena" width="720" height="432"></canvas>
+          </div>
+          <div class="btn-row">
+            <button id="run-btn">Run</button>
+            <button class="secondary" id="step-btn">Step</button>
+            <button class="secondary" id="reset-btn">Reset</button>
+            <button class="secondary" id="rand-seed-btn">Randomize seed</button>
+          </div>
+          <div class="btn-row" style="margin-top:8px;">
+            <button class="secondary" id="preset-fight-btn">Preset · Let them fight</button>
+            <button class="secondary" id="preset-lock-btn">Preset · Lock-hungry</button>
+          </div>
+          <div class="btn-row" style="margin-top:8px;">
+            <button class="secondary" id="fairness-btn">Quick fairness check (20 seeds)</button>
+            <button class="secondary" id="export-settings-btn">Export settings JSON</button>
+          </div>
+          <div class="small" style="margin-top:6px;">
+            Time: <span id="time-display">t = 0 · 0 steps/sec</span>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:8px;">
+          <div class="panel-header">
+            <div class="panel-title">Run log</div>
+            <div class="panel-sub">Ultra local · no external calls.</div>
+          </div>
+          <div class="log-box" id="run-log">[–] Qutrit Arena — Ultra skin ready.</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: metrics + controls -->
+      <div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Controls & metrics</div>
+            <div class="panel-sub">Same parameter stack · QDS-style fairness instrumentation.</div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-label">Fractions (0 / P1 / P2)</div>
+              <div class="metric-value">
+                <span id="frac-0">0.000</span> ·
+                <span id="frac-1">0.000</span> ·
+                <span id="frac-2">0.000</span>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Potential agreement</div>
+              <div class="metric-value" id="potential-agreement">0.000</div>
+              <div class="small">Mean neighbour-agreement (0 = chaos, 1 = fully locked).</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Mean local cluster</div>
+              <div class="metric-value" id="mean-cluster">0.00</div>
+              <div class="small">Approximate size-proxy of like-state patches.</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Δ = P1 − P2</div>
+              <div class="metric-value" id="delta-p1-p2">0.000</div>
+              <div class="small">Current composition difference (fairness proxy).</div>
+            </div>
+          </div>
+
+          <div class="small" style="margin:6px 0 4px;">Grid & speed</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <div style="flex:1 1 80px;">
+              <label for="width-input">Width</label>
+              <input id="width-input" type="number" min="10" max="120" value="60">
+            </div>
+            <div style="flex:1 1 80px;">
+              <label for="height-input">Height</label>
+              <input id="height-input" type="number" min="10" max="80" value="36">
+            </div>
+            <div style="flex:1 1 120px;">
+              <label for="speed-input">Speed (steps/sec)</label>
+              <input id="speed-input" type="range" min="1" max="60" value="30">
+              <div class="small"><span id="speed-label">30</span> steps/sec (target)</div>
+            </div>
+          </div>
+
+          <div class="small" style="margin:8px 0 4px;">Initial composition</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <div style="flex:1 1 120px;">
+              <label for="init-empty-input">Init empty (0) fraction</label>
+              <input id="init-empty-input" type="range" min="0" max="0.8" step="0.01" value="0.02">
+              <div class="small"><span id="init-empty-label">0.02</span></div>
+            </div>
+            <div style="flex:1 1 120px;">
+              <label for="init-p1-input">Init P1 share (rest P2)</label>
+              <input id="init-p1-input" type="range" min="0.0" max="1.0" step="0.01" value="0.5">
+              <div class="small"><span id="init-p1-label">0.50</span></div>
+            </div>
+          </div>
+
+          <div class="small" style="margin:8px 0 4px;">Competition dynamics</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <div style="flex:1 1 120px;">
+              <label for="temp-input">Competition temperature</label>
+              <input id="temp-input" type="range" min="0.3" max="2.0" step="0.05" value="1.2">
+              <div class="small">Higher = more randomness; lower = winner-takes-more. <span id="temp-label">1.20</span></div>
+            </div>
+            <div style="flex:1 1 120px;">
+              <label for="margin-input">Lock margin</label>
+              <input id="margin-input" type="range" min="0" max="4" step="1" value="3">
+              <div class="small">Minimum neighbour advantage before locking. <span id="margin-label">3</span></div>
+            </div>
+          </div>
+
+          <div class="small" style="margin:8px 0 4px;">Extras</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <label>
+              <input id="wrap-input" type="checkbox" checked> Wrap edges (toroidal)
+            </label>
+            <label>
+              <input id="seed-input" type="number" value="7" style="width:80px;"> Seed
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // --- State ---------------------------------------------------------------
+  const canvas = document.getElementById("arena");
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+
+  const dpr = window.devicePixelRatio || 1;
+  const baseW = 720, baseH = 432;
+  canvas.width = baseW * dpr;
+  canvas.height = baseH * dpr;
+  canvas.style.width = baseW + "px";
+  canvas.style.height = (baseH) + "px";
+  ctx.scale(dpr, dpr);
+
+  const els = {
+    timeDisplay: document.getElementById("time-display"),
+    runLog: document.getElementById("run-log"),
+    runBtn: document.getElementById("run-btn"),
+    stepBtn: document.getElementById("step-btn"),
+    resetBtn: document.getElementById("reset-btn"),
+    randSeedBtn: document.getElementById("rand-seed-btn"),
+    presetFightBtn: document.getElementById("preset-fight-btn"),
+    presetLockBtn: document.getElementById("preset-lock-btn"),
+    fairnessBtn: document.getElementById("fairness-btn"),
+    exportSettingsBtn: document.getElementById("export-settings-btn"),
+    frac0: document.getElementById("frac-0"),
+    frac1: document.getElementById("frac-1"),
+    frac2: document.getElementById("frac-2"),
+    potential: document.getElementById("potential-agreement"),
+    cluster: document.getElementById("mean-cluster"),
+    delta: document.getElementById("delta-p1-p2"),
+    widthInput: document.getElementById("width-input"),
+    heightInput: document.getElementById("height-input"),
+    speedInput: document.getElementById("speed-input"),
+    speedLabel: document.getElementById("speed-label"),
+    initEmptyInput: document.getElementById("init-empty-input"),
+    initEmptyLabel: document.getElementById("init-empty-label"),
+    initP1Input: document.getElementById("init-p1-input"),
+    initP1Label: document.getElementById("init-p1-label"),
+    tempInput: document.getElementById("temp-input"),
+    tempLabel: document.getElementById("temp-label"),
+    marginInput: document.getElementById("margin-input"),
+    marginLabel: document.getElementById("margin-label"),
+    wrapInput: document.getElementById("wrap-input"),
+    seedInput: document.getElementById("seed-input")
+  };
+
+  const colours = {
+    bg: "#050815",
+    p1: "#ff4a7a",
+    p2: "#00ff99",
+    grid: "rgba(0,0,0,0.45)"
+  };
+
+  const state = {
+    width: 60,
+    height: 36,
+    cells: [],
+    next: [],
+    running: false,
+    stepTimer: null,
+    t: 0,
+    lastTick: performance.now(),
+    targetStepsPerSec: 30,
+    brush: 1,            // 1 = P1, 2 = P2
+    pointerCount: 0,
+    longPressTimer: null
+  };
+
+  // --- PRNG ---------------------------------------------------------------
+  function mulberry32(a){
+    return function(){
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function rngFromSeed(seed){
+    const s = (seed|0) || 1;
+    return mulberry32(s);
+  }
+
+  // --- Helpers ------------------------------------------------------------
+  function log(msg){
+    const t = new Date().toTimeString().slice(0,8);
+    const line = `[${t}] ${msg}`;
+    els.runLog.textContent = line + "\n" + els.runLog.textContent;
+  }
+
+  function syncFromControls(){
+    state.width = clamp(parseInt(els.widthInput.value)||60,10,120);
+    state.height = clamp(parseInt(els.heightInput.value)||36,10,80);
+    state.targetStepsPerSec = clamp(parseInt(els.speedInput.value)||30,1,60);
+    els.speedLabel.textContent = state.targetStepsPerSec;
+    els.initEmptyLabel.textContent = (+els.initEmptyInput.value).toFixed(2);
+    els.initP1Label.textContent = (+els.initP1Input.value).toFixed(2);
+    els.tempLabel.textContent = (+els.tempInput.value).toFixed(2);
+    els.marginLabel.textContent = (+els.marginInput.value).toFixed(0);
+  }
+
+  function params(){
+    return {
+      width: state.width,
+      height: state.height,
+      initEmpty: parseFloat(els.initEmptyInput.value),
+      initP1Share: parseFloat(els.initP1Input.value),
+      temperature: parseFloat(els.tempInput.value),
+      lockMargin: parseInt(els.marginInput.value),
+      wrap: !!els.wrapInput.checked,
+      seed: parseInt(els.seedInput.value)||7
+    };
+  }
+
+  function clamp(v,min,max){return v<min?min:(v>max?max:v);}
+
+  function buildArrays(){
+    const n = state.width * state.height;
+    state.cells = new Array(n).fill(0);
+    state.next = new Array(n).fill(0);
+  }
+
+  function index(x,y){
+    return y*state.width+x;
+  }
+
+  // --- Initialisation -----------------------------------------------------
+  function initGrid(seed){
+    syncFromControls();
+    buildArrays();
+    const p = params();
+    const rand = rngFromSeed(seed);
+
+    for(let y=0;y<state.height;y++){
+      for(let x=0;x<state.width;x++){
+        const r = rand();
+        let v = 0;
+        if(r < p.initEmpty){
+          v = 0;
+        }else{
+          const r2 = (r - p.initEmpty) / (1 - p.initEmpty || 1);
+          v = r2 < p.initP1Share ? 1 : 2;
+        }
+        state.cells[index(x,y)] = v;
+      }
+    }
+    state.t = 0;
+    updateMetrics();
+    drawGrid();
+    updateTimeDisplay(0);
+  }
+
+  function resetFromSeed(){
+    const p = params();
+    initGrid(p.seed);
+    log(`Reset. Seed=${p.seed}, brush=P${state.brush}`);
+  }
+
+  // --- Metrics & drawing --------------------------------------------------
+  function drawGrid(){
+    const w = baseW;
+    const h = baseH;
+    const cellW = w / state.width;
+    const cellH = h / state.height;
+
+    // background
+    const grad = ctx.createLinearGradient(0,0,w,h);
+    grad.addColorStop(0,"#050816");
+    grad.addColorStop(1,"#02000a");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,w,h);
+
+    // cells
+    for(let y=0;y<state.height;y++){
+      for(let x=0;x<state.width;x++){
+        const v = state.cells[index(x,y)];
+        if(v === 0) continue;
+        ctx.fillStyle = v===1 ? colours.p1 : colours.p2;
+        ctx.fillRect(x*cellW, y*cellH, cellW+0.01, cellH+0.01);
+      }
+    }
+
+    // grid overlay (subtle)
+    ctx.strokeStyle = colours.grid;
+    ctx.lineWidth = 0.5;
+    for(let x=0;x<=state.width;x++){
+      ctx.beginPath();
+      ctx.moveTo(x*cellW,0);
+      ctx.lineTo(x*cellW,h);
+      ctx.stroke();
+    }
+    for(let y=0;y<=state.height;y++){
+      ctx.beginPath();
+      ctx.moveTo(0,y*cellH);
+      ctx.lineTo(w,y*cellH);
+      ctx.stroke();
+    }
+  }
+
+  function updateMetrics(){
+    const n = state.width * state.height;
+    if(!n) return;
+    let c0=0,c1=0,c2=0;
+    let agreeSum=0, countCamp=0;
+
+    const neighbours = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]];
+    const p = params();
+    const wrap = p.wrap;
+
+    for(let y=0;y<state.height;y++){
+      for(let x=0;x<state.width;x++){
+        const v = state.cells[index(x,y)];
+        if(v===0) c0++; else if(v===1) c1++; else c2++;
+
+        if(v===1 || v===2){
+          let same=0, total=0;
+          for(const [dx,dy] of neighbours){
+            let nx=x+dx, ny=y+dy;
+            if(wrap){
+              if(nx<0) nx+=state.width;
+              if(nx>=state.width) nx-=state.width;
+              if(ny<0) ny+=state.height;
+              if(ny>=state.height) ny-=state.height;
+            }else{
+              if(nx<0||nx>=state.width||ny<0||ny>=state.height) continue;
+            }
+            total++;
+            if(state.cells[index(nx,ny)]===v) same++;
+          }
+          if(total>0){
+            agreeSum += same/total;
+            countCamp++;
+          }
+        }
+      }
+    }
+
+    const f0 = c0/n, f1=c1/n, f2=c2/n;
+    els.frac0.textContent = f0.toFixed(3);
+    els.frac1.textContent = f1.toFixed(3);
+    els.frac2.textContent = f2.toFixed(3);
+    els.delta.textContent = (f1-f2).toFixed(3);
+
+    const potential = countCamp ? agreeSum/countCamp : 0;
+    els.potential.textContent = potential.toFixed(3);
+
+    // crude cluster proxy: 1 + 4 * potential (just to get 1–5ish)
+    const cluster = 1 + 4*potential;
+    els.cluster.textContent = cluster.toFixed(2);
+  }
+
+  function updateTimeDisplay(stepsPerSec){
+    els.timeDisplay.textContent = `t = ${state.t} · ${stepsPerSec.toFixed(1)} steps/sec`;
+  }
+
+  // --- Simulation step ----------------------------------------------------
+  function stepOnce(rand){
+    const p = params();
+    const neighbours = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]];
+    const wrap = p.wrap;
+    const T = p.temperature;
+    const margin = p.lockMargin|0;
+
+    for(let y=0;y<state.height;y++){
+      for(let x=0;x<state.width;x++){
+        const idx = index(x,y);
+        const v = state.cells[idx];
+
+        let n1=0,n2=0;
+        for(const [dx,dy] of neighbours){
+          let nx=x+dx, ny=y+dy;
+          if(wrap){
+            if(nx<0) nx+=state.width;
+            if(nx>=state.width) nx-=state.width;
+            if(ny<0) ny+=state.height;
+            if(ny>=state.height) ny-=state.height;
+          }else{
+            if(nx<0||nx>=state.width||ny<0||ny>=state.height) continue;
+          }
+          const nv = state.cells[index(nx,ny)];
+          if(nv===1) n1++; else if(nv===2) n2++;
+        }
+
+        let nextV = v;
+
+        const diff = n1 - n2;
+        if(Math.abs(diff) >= margin){
+          nextV = diff>0 ? 1 : 2;
+        }else{
+          // "thermal" flips: small chance to change based on temperature
+          const r = rand();
+          const pFlip = (T-0.3)/2; // 0 → almost none, 2 → big
+          if(r < pFlip){
+            // random neighbour camp or empty
+            const r2 = rand();
+            if(r2 < 0.05) nextV = 0;
+            else if(r2 < 0.525) nextV = 1;
+            else nextV = 2;
+          }
+        }
+        state.next[idx] = nextV;
+      }
+    }
+
+    // swap
+    const tmp = state.cells;
+    state.cells = state.next;
+    state.next = tmp;
+    state.t++;
+  }
+
+  // --- Run loop -----------------------------------------------------------
+  function start(){
+    if(state.running) return;
+    state.running = true;
+    els.runBtn.textContent = "Pause";
+
+    let last = performance.now();
+    const target = () => state.targetStepsPerSec;
+    let accumulator = 0;
+
+    function loop(now){
+      if(!state.running) return;
+      const dt = (now - last)/1000;
+      last = now;
+      accumulator += dt*target();
+
+      const rand = rngFromSeed(state.t + params().seed*101);
+
+      let steps = 0;
+      while(accumulator>=1){
+        stepOnce(rand);
+        accumulator -= 1;
+        steps++;
+      }
+      drawGrid();
+      updateMetrics();
+      updateTimeDisplay(steps/dt || target());
+
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+  }
+
+  function stop(){
+    state.running = false;
+    els.runBtn.textContent = "Run";
+  }
+
+  // --- Fairness check -----------------------------------------------------
+  async function quickFairnessCheck(){
+    stop();
+    const p0 = params();
+    const runs = 20;
+    const steps = 200;
+    let deltas = [];
+
+    log(`Fairness check: ${runs} seeds × ${steps} steps…`);
+
+    for(let s=0;s<runs;s++){
+      const seed = p0.seed + s*97;
+      syncFromControls();
+      buildArrays();
+      const randInit = rngFromSeed(seed);
+      // init
+      for(let y=0;y<state.height;y++){
+        for(let x=0;x<state.width;x++){
+          const r = randInit();
+          let v=0;
+          if(r < p0.initEmpty) v=0;
+          else{
+            const r2 = (r-p0.initEmpty)/(1-p0.initEmpty||1);
+            v = r2 < p0.initP1Share ? 1:2;
+          }
+          state.cells[index(x,y)] = v;
+        }
+      }
+      state.t = 0;
+      const rand = rngFromSeed(seed*13+3);
+      for(let k=0;k<steps;k++) stepOnce(rand);
+
+      const n = state.width*state.height;
+      let c1=0,c2=0;
+      for(let i=0;i<n;i++){
+        if(state.cells[i]===1) c1++;
+        else if(state.cells[i]===2) c2++;
+      }
+      const d = c1/n - c2/n;
+      deltas.push(d);
+    }
+
+    // restore current grid
+    resetFromSeed();
+
+    const mean = deltas.reduce((a,b)=>a+b,0)/runs;
+    const maxAbs = Math.max(...deltas.map(v=>Math.abs(v)));
+    const fairFrac = deltas.filter(v=>Math.abs(v)<=0.1).length/runs;
+
+    log(`Fairness summary: mean Δ=${mean.toFixed(3)}, max |Δ|=${maxAbs.toFixed(3)}, P(|Δ|≤0.1)=${(fairFrac*100).toFixed(1)}%`);
+  }
+
+  // --- Pointer painting ---------------------------------------------------
+  function cellFromEvent(ev){
+    const rect = canvas.getBoundingClientRect();
+    const x = (ev.clientX - rect.left) * (baseW/rect.width);
+    const y = (ev.clientY - rect.top) * (baseH/rect.height);
+    const gx = Math.floor(clamp(x,0,baseW-1)/ (baseW/state.width));
+    const gy = Math.floor(clamp(y,0,baseH-1)/ (baseH/state.height));
+    if(gx<0||gy<0||gx>=state.width||gy>=state.height) return null;
+    return {x:gx,y:gy};
+  }
+
+  function paintAt(ev){
+    const cell = cellFromEvent(ev);
+    if(!cell) return;
+    const idx = index(cell.x,cell.y);
+    const erase = state.pointerCount>=2;
+    state.cells[idx] = erase ? 0 : state.brush;
+    drawGrid();
+    updateMetrics();
+  }
+
+  canvas.addEventListener("pointerdown", ev=>{
+    canvas.setPointerCapture(ev.pointerId);
+    state.pointerCount++;
+    // long-press toggles brush
+    state.longPressTimer = setTimeout(()=>{
+      state.brush = state.brush===1 ? 2 : 1;
+      log(`Brush toggled: now P${state.brush}`);
+    },450);
+    paintAt(ev);
+  });
+
+  canvas.addEventListener("pointermove", ev=>{
+    if(ev.pressure===0) return;
+    if(state.longPressTimer) clearTimeout(state.longPressTimer);
+    state.longPressTimer = null;
+    paintAt(ev);
+  });
+
+  function endPointer(ev){
+    try{canvas.releasePointerCapture(ev.pointerId);}catch(e){}
+    state.pointerCount = Math.max(0,state.pointerCount-1);
+    if(state.longPressTimer){
+      clearTimeout(state.longPressTimer);
+      state.longPressTimer=null;
+    }
+  }
+  canvas.addEventListener("pointerup", endPointer);
+  canvas.addEventListener("pointercancel", endPointer);
+  canvas.addEventListener("pointerout", endPointer);
+
+  // --- Buttons & controls -------------------------------------------------
+  els.runBtn.addEventListener("click",()=>{
+    if(state.running) stop(); else start();
+  });
+  els.stepBtn.addEventListener("click",()=>{
+    stop();
+    const rand = rngFromSeed(state.t + params().seed*17);
+    stepOnce(rand);
+    drawGrid();
+    updateMetrics();
+    updateTimeDisplay(state.targetStepsPerSec);
+  });
+  els.resetBtn.addEventListener("click",()=>resetFromSeed());
+  els.randSeedBtn.addEventListener("click",()=>{
+    const s = Math.floor(Math.random()*1e9);
+    els.seedInput.value = s;
+    resetFromSeed();
+  });
+  els.presetFightBtn.addEventListener("click",()=>{
+    els.initEmptyInput.value = 0.02;
+    els.initP1Input.value = 0.5;
+    els.tempInput.value = 1.2;
+    els.marginInput.value = 3;
+    syncFromControls();
+    resetFromSeed();
+    log("Preset applied: Let them fight.");
+  });
+  els.presetLockBtn.addEventListener("click",()=>{
+    els.initEmptyInput.value = 0.02;
+    els.initP1Input.value = 0.5;
+    els.tempInput.value = 0.8;
+    els.marginInput.value = 1;
+    syncFromControls();
+    resetFromSeed();
+    log("Preset applied: Lock-hungry.");
+  });
+  els.fairnessBtn.addEventListener("click",quickFairnessCheck);
+  els.exportSettingsBtn.addEventListener("click",()=>{
+    const cfg = params();
+    const blob = new Blob([JSON.stringify(cfg,null,2)],{type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "qds_qutrit_arena_settings.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  els.speedInput.addEventListener("input",syncFromControls);
+  els.initEmptyInput.addEventListener("input",syncFromControls);
+  els.initP1Input.addEventListener("input",syncFromControls);
+  els.tempInput.addEventListener("input",syncFromControls);
+  els.marginInput.addEventListener("input",syncFromControls);
+  els.widthInput.addEventListener("change",()=>{syncFromControls();resetFromSeed();});
+  els.heightInput.addEventListener("change",()=>{syncFromControls();resetFromSeed();});
+  els.wrapInput.addEventListener("change",()=>{resetFromSeed();});
+
+  // --- Boot ---------------------------------------------------------------
+  syncFromControls();
+  resetFromSeed();
+})();
+</script>
+
+
+<script id="qds-fairness-patch-v1">
+(() => {
+  // --- QDS Qutrit Arena: Fairness sweep hotfix (push-safe, UI-only) ---
+  // Goal: stop “possessed” fairness results by running a deterministic, auditable seed sweep.
+  const log = (msg) => {
+    try { if (typeof window.log === "function") window.log(msg); else console.log(msg); }
+    catch(e){ console.log(msg); }
+  };
+  const ts = () => {
+    const d = new Date();
+    const p = (n)=>String(n).padStart(2,"0");
+    return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  };
+
+  function mulberry32(a){
+    a >>>= 0;
+    return function(){
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function fairnessSeeds(baseSeed, n=20){
+    let x = (baseSeed >>> 0) || 1;
+    const out = [];
+    for (let i=0;i<n;i++){
+      x = (Math.imul(x, 1664525) + 1013904223) >>> 0; // LCG
+      out.push(x);
+    }
+    return out;
+  }
+
+  function getSeedFromUI(){
+    // Prefer global state
+    if (window.state && Number.isFinite(window.state.seed)) return (window.state.seed >>> 0);
+    // Try input fields by common patterns
+    const inps = Array.from(document.querySelectorAll("input"));
+    for (const el of inps){
+      const id = (el.id||"").toLowerCase();
+      const nm = (el.name||"").toLowerCase();
+      if ((id.includes("seed") || nm.includes("seed")) && el.value !== ""){
+        const v = Number(el.value);
+        if (Number.isFinite(v)) return (v >>> 0);
+      }
+    }
+    return 7;
+  }
+
+  function computeDeltaFallback(){
+    // If you already expose metricDelta(), use it
+    if (typeof window.metricDelta === "function") return Number(window.metricDelta()) || 0;
+    // Else try state fractions
+    if (window.state && window.state.fP1 != null && window.state.fP2 != null){
+      return (Number(window.state.fP1) - Number(window.state.fP2)) || 0;
+    }
+    // Else scan grid
+    const st = window.state;
+    if (st && st.grid && st.grid.length){
+      let c1=0,c2=0;
+      for (let i=0;i<st.grid.length;i++){
+        const v = st.grid[i];
+        if (v===1) c1++;
+        else if (v===2) c2++;
+      }
+      const n = st.grid.length || 1;
+      return (c1/n) - (c2/n);
+    }
+    return 0;
+  }
+
+  function runStepsFallback(n){
+    // Prefer existing fast runner
+    if (typeof window.runSteps === "function") { window.runSteps(n); return; }
+    // Otherwise try step/tick
+    const step = window.step || window.stepOnce || window.tick || window.advance;
+    if (typeof step === "function"){
+      for (let i=0;i<n;i++) step();
+      return;
+    }
+    throw new Error("No step runner found (expected runSteps/step/tick).");
+  }
+
+  function resetFallback(){
+    // Prefer silent reset if available
+    if (typeof window.hardResetNoLog === "function") { window.hardResetNoLog(); return; }
+    if (typeof window.reset === "function") { window.reset(); return; }
+    throw new Error("No reset() found.");
+  }
+
+  function findFairnessButton(){
+    // Try to find a button with text containing "Quick fairness"
+    const btns = Array.from(document.querySelectorAll("button"));
+    const hit = btns.find(b => (b.textContent||"").toLowerCase().includes("quick fairness"));
+    if (hit) return hit;
+    // fallback: any button containing "fairness"
+    return btns.find(b => (b.textContent||"").toLowerCase().includes("fairness")) || null;
+  }
+
+  function install(){
+    const btn = findFairnessButton();
+    if (!btn) { log(`[${ts()}] Fairness patch: button not found (skipping).`); return; }
+
+    // Clone to nuke old listeners (reliable override)
+    const clone = btn.cloneNode(true);
+    btn.parentNode.replaceChild(clone, btn);
+
+    clone.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      try {
+        const baseSeed = getSeedFromUI();
+        const seeds = fairnessSeeds(baseSeed, 20);
+
+        const savedSeed = (window.state && Number.isFinite(window.state.seed)) ? window.state.seed : baseSeed;
+
+        log(`[${ts()}] Fairness check (patched): baseSeed=${baseSeed} seeds=[${seeds.join(",")}] steps=200…`);
+
+        const deltas = [];
+        for (let i=0;i<seeds.length;i++){
+          if (window.state) window.state.seed = seeds[i];
+          resetFallback();
+          runStepsFallback(200);
+          const d = computeDeltaFallback();
+          deltas.push(d);
+          if (i < 3) log(`[${ts()}] seed=${seeds[i]} Δ=${d.toFixed(3)}`);
+        }
+
+        const mean = deltas.reduce((a,b)=>a+b,0)/deltas.length;
+        const maxAbs = Math.max(...deltas.map(d=>Math.abs(d)));
+        const pClose = deltas.filter(d=>Math.abs(d)<=0.1).length / deltas.length;
+
+        log(`[${ts()}] Fairness summary (patched): mean Δ=${mean.toFixed(3)}, max |Δ|=${maxAbs.toFixed(3)}, P(|Δ|≤0.1)=${(100*pClose).toFixed(1)}%`);
+
+        // restore
+        if (window.state) window.state.seed = savedSeed;
+        resetFallback();
+      } catch (e){
+        log(`[${ts()}] Fairness patch ERROR: ${String(e && e.message || e)}`);
+      }
+    }, {capture:true});
+    log(`[${ts()}] Fairness patch installed (listener overridden).`);
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", install);
+  else install();
+})();
+</script>
+
+</body>
+</html>
