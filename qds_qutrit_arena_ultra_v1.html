@@ -951,6 +951,22 @@
 
 
 
+<script id="qds-arena-ui-shim-v1">
+(() => {
+  const byText = (needle) => {
+    needle = needle.toLowerCase();
+    const btns = Array.from(document.querySelectorAll("button,[role='button'],a"));
+    return btns.find(b => (b.textContent||"").toLowerCase().includes(needle));
+  };
+  const btnReset = byText("reset");
+  const btnStep  = byText("step");
+  if (btnReset && btnStep){
+    window.QDS_ARENA = window.QDS_ARENA || {};
+    window.QDS_ARENA.uiReset = () => btnReset.click();
+    window.QDS_ARENA.uiStep  = () => btnStep.click();
+  }
+})();
+</script>
 <script id="qds-fairness-patch-v3">
 (() => {
   const ts = () => {
@@ -1082,8 +1098,8 @@
     const base = getSeed();
     const seeds = fairnessSeeds(base, 20);
 
-    const resetFn = findReset();
-    const stepFn  = findStep();
+    const resetFn = (window.QDS_ARENA && window.QDS_ARENA.uiReset) ? window.QDS_ARENA.uiReset : findReset();
+    const stepFn  = (window.QDS_ARENA && window.QDS_ARENA.uiStep)  ? ((n)=>{for(let i=0;i<n;i++) window.QDS_ARENA.uiStep();}) : findStep();
 
     const rkeys = keysLike(/reset/i, 15);
     const skeys = keysLike(/step|tick|advance/i, 15);
