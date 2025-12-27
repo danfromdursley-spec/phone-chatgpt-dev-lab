@@ -978,13 +978,15 @@
 
   // badge
   const badge=document.createElement("div");
-  badge.textContent="FAIRFIX v3.3: armed";
+  badge.textContent="FAIRFIX v3.4: armed";
   badge.style.cssText="position:fixed;z-index:999999;right:10px;bottom:10px;padding:8px 10px;border-radius:10px;font:12px/1.2 system-ui;background:rgba(0,0,0,.72);border:1px solid rgba(0,255,180,.55);color:#b9ffe9;box-shadow:0 6px 16px rgba(0,0,0,.35);max-width:70vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis";
   const mount=()=>{try{(document.body||document.documentElement).appendChild(badge);}catch(e){}};
   if(document.body) mount(); else addEventListener("DOMContentLoaded",mount,{once:true});
 
   // log
   const log=(msg)=>{
+    if(window.QDS_FAIR_SWEEP && /\] Reset\./.test(msg)) return;
+
     const line=`[${ts()}] ${msg}`;
     const fn=window.log||window.addLog||window.pushLog||window.appendLog||window.logLine;
     if(typeof fn==="function"){ try{fn(line);return;}catch(e){} }
@@ -1060,7 +1062,10 @@
     }
   }
 
-  let running=false;
+  let window.QDS_FAIR_SWEEP=false;
+      running=false;
+  window.QDS_FAIR_SWEEP=false;
+
   async function runFairness(){
     if(running) return;
     running=true;
@@ -1070,31 +1075,36 @@
       const seeds=fairnessSeeds(base,20);
 
       log(`Fairness check (v3.3): baseSeed=${base} seeds=[${seeds.join(",")}] steps=200…`);
-      badge.textContent="FAIRFIX v3.3: running…";
+      badge.textContent="FAIRFIX v3.4: running…";
 
-      const ds=[];
+      const ds=[]; const rows=[];
+
       for(let i=0;i<seeds.length;i++){
         applySeed(seeds[i]);
         btnReset.click();
         await sleep(0);
         await runStepsYield(200,50);
-        const d=delta(); ds.push(d);
+        const d=delta(); ds.push(d); rows.push({seed:seeds[i], d});
 
         // sanity: read back what the app thinks the seed is
         const back = getSeed();
         if(i < 3) log(`seed(set=${seeds[i]} readback=${back}) Δ=${d.toFixed(3)}`);
 
-        badge.textContent=`FAIRFIX v3.3: ${i+1}/20`;
+        badge.textContent=`FAIRFIX v3.4: ${i+1}/20`;
         await sleep(0);
       }
 
       const mean=ds.reduce((a,b)=>a+b,0)/ds.length;
       const maxAbs=Math.max(...ds.map(d=>Math.abs(d)));
       const pClose=ds.filter(d=>Math.abs(d)<=0.1).length/ds.length;
-      log(`Fairness summary (v3.3): mean Δ=${mean.toFixed(3)}, max |Δ|=${maxAbs.toFixed(3)}, P(|Δ|≤0.1)=${(100*pClose).toFixed(1)}%`);
-      badge.textContent="FAIRFIX v3.3: done ✅";
-      setTimeout(()=>badge.textContent="FAIRFIX v3.3: armed", 1200);
+      rows.sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
+      const top=rows.slice(0,5).map(r=>`${r.seed}:${r.d.toFixed(3)}`).join(' | ');
+      log(`Fairness summary (v3.4): mean Δ=${mean.toFixed(3)}, max |Δ|=${maxAbs.toFixed(3)}, P(|Δ|≤0.1)=${(100*pClose).toFixed(1)}%`);
+      log(`Worst seeds top5 (|Δ|): ${top}`);
+      badge.textContent="FAIRFIX v3.4: done ✅";
+      setTimeout(()=>badge.textContent="FAIRFIX v3.4: armed", 1200);
     } finally {
+      window.QDS_FAIR_SWEEP=false;
       running=false;
     }
   }
@@ -1106,12 +1116,12 @@
     ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation();
     runFairness().catch(e=>{
       const msg=String(e && (e.message||e) || "unknown").slice(0,120);
-      badge.textContent="FAIRFIX v3.3 ERROR: "+msg;
-      log(`FAIRFIX v3.3 ERROR: ${msg}`);
+      badge.textContent="FAIRFIX v3.4 ERROR: "+msg;
+      log(`FAIRFIX v3.4 ERROR: ${msg}`);
     });
   }, true);
 
-  log("FAIRFIX v3.3 armed (seed apply via input+events).");
+  log("FAIRFIX v3.4 armed (seed apply via input+events).");
 })();
 </script>
 
