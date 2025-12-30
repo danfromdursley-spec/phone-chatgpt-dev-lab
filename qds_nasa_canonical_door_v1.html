@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QDS • Canonical Lab Deck (NASA Mode)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    :root {
+      --bg: #020615;
+      --panel: #050b1f;
+      --panel-alt: #071125;
+      --accent: #4cc3ff;
+      --accent-soft: rgba(76,195,255,0.2);
+      --accent-hot: #ff8c3a;
+      --text-main: #e4f3ff;
+      --text-soft: #9fb3c8;
+      --border-soft: #1a2740;
+      --danger: #ff4b81;
+      --radius-xl: 18px;
+      --radius-pill: 999px;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #07132c 0, #020615 55%, #000 100%);
+      color: var(--text-main);
+    }
+    .shell {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 14px 10px 40px;
+    }
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .tagline {
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+    .badge {
+      font-size: 0.65rem;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--accent-soft);
+      background: linear-gradient(120deg, rgba(76,195,255,0.16), rgba(255,140,58,0.12));
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+    .metric-pill {
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      background: rgba(6,18,40,0.9);
+      border: 1px solid var(--border-soft);
+    }
+    .metric-pill strong {
+      color: var(--accent);
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 14px;
+    }
+    .search-box {
+      flex: 1 1 160px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 8px 10px 8px 26px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-soft);
+      background: rgba(5,11,31,0.95);
+      color: var(--text-main);
+      font-size: 0.85rem;
+    }
+    .search-box input::placeholder {
+      color: #58647a;
+    }
+    .search-icon {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      color: #61728a;
+      pointer-events: none;
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .filter-chip {
+      font-size: 0.72rem;
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-soft);
+      background: rgba(4,12,30,0.95);
+      color: var(--text-soft);
+    }
+    .filter-chip.active {
+      border-color: var(--accent);
+      background: linear-gradient(120deg, rgba(76,195,255,0.18), rgba(9,40,92,0.95));
+      color: var(--text-main);
+    }
+
+    .panel {
+      background: radial-gradient(circle at top, #09152e 0, #050b1f 50%, #020515 100%);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-soft);
+      padding: 10px 10px 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 0 0 1px rgba(4,12,30,0.7), 0 18px 40px rgba(0,0,0,0.7);
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .panel-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .panel-count {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+    }
+
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 6px;
+    }
+    .lab-btn {
+      border-radius: 12px;
+      border: 1px solid rgba(44,72,120,0.85);
+      background: linear-gradient(145deg, rgba(9,22,50,0.96), rgba(6,16,38,0.98));
+      padding: 7px 8px;
+      font-size: 0.76rem;
+      color: var(--text-main);
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      position: relative;
+      overflow: hidden;
+    }
+    .lab-btn span.lab-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lab-btn span.lab-path {
+      font-size: 0.65rem;
+      color: var(--text-soft);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lab-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(76,195,255,0.16), transparent 55%);
+      opacity: 0;
+      transition: opacity 0.18s ease-out;
+    }
+    .lab-btn:active::before {
+      opacity: 1;
+    }
+    .lab-btn.hot {
+      border-color: rgba(255,140,58,0.9);
+    }
+
+    .status-line {
+      margin-top: 6px;
+      font-size: 0.74rem;
+      color: var(--text-soft);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .status-line span.label {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.68rem;
+      color: #7689a3;
+    }
+
+    .error-banner {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,75,129,0.6);
+      background: rgba(40,4,18,0.85);
+      font-size: 0.78rem;
+      color: #ffc4d7;
+    }
+
+    @media (min-width: 780px) {
+      h1 { font-size: 1.5rem; }
+      .shell { padding: 18px 16px 40px; }
+      .panel { padding: 12px 14px 14px; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="title-row">
+      <h1>QDS • Canonical Lab Deck</h1>
+      <div class="badge">NASA-Style Mission Door</div>
+    </div>
+    <div class="tagline">
+      December sprint portfolio — canonical HTML labs auto-wired from <code>canonical_labs.txt</code>.
+    </div>
+    <div class="metrics" id="metricsRow">
+      <div class="metric-pill"><strong id="metricTotal">0</strong> labs loaded</div>
+      <div class="metric-pill"><strong id="metricGroups">0</strong> categories</div>
+      <div class="metric-pill">Root: <code>./</code></div>
+    </div>
+  </header>
+
+  <section class="controls-row">
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input id="searchInput" type="search" placeholder="Search labs by name or path…">
+    </div>
+    <div class="filter-row" id="filterRow">
+      <!-- filter chips populated by JS -->
+    </div>
+  </section>
+
+  <div id="panelsContainer">
+    <!-- category panels inserted here -->
+  </div>
+
+  <div class="status-line" id="statusLine">
+    <span class="label">STATUS</span>
+    <span id="statusText">Booting lab deck…</span>
+  </div>
+
+  <div class="error-banner" id="errorBanner" style="display:none;">
+    Could not load <code>canonical_labs.txt</code>. Check that this file sits next to
+    <code>qds_nasa_canonical_door_v1.html</code> and that your HTTP server is running.
+  </div>
+</div>
+
+<script>
+(function() {
+  const CATEGORY_RULES = [
+    { key: "battery",   label: "Battery / Grid Labs",
+      test: p => /battery|vpp_mw|devdoor_battery/i.test(p) },
+    { key: "doors",     label: "Front Doors & Hubs",
+      test: p => /frontdoor|door|index\.html$/i.test(p) },
+    { key: "news",      label: "News / Triage Tools",
+      test: p => /physorg|news_dashboard|supervault/i.test(p) },
+    { key: "physics",   label: "Physics / Astro Labs",
+      test: p => /alma|pulsar|ngc|rotation|rotmod|tev_halo|kagome|rc_lab/i.test(p) },
+    { key: "bio",       label: "Bio / Genomics",
+      test: p => /dynamic_dna|genomics/i.test(p) },
+    { key: "meta",      label: "Meta / Refinery / Revenue",
+      test: p => /release_register|revenue_floor|parameter_refinery|refinery_plugin|megasuite|test_platform|case_study/i.test(p) },
+    { key: "other",     label: "Other Labs",
+      test: _ => true } // fallback
+  ];
+
+  const panelsContainer = document.getElementById("panelsContainer");
+  const metricsTotal = document.getElementById("metricTotal");
+  const metricsGroups = document.getElementById("metricGroups");
+  const statusText = document.getElementById("statusText");
+  const errorBanner = document.getElementById("errorBanner");
+  const searchInput = document.getElementById("searchInput");
+  const filterRow = document.getElementById("filterRow");
+
+  let allLabs = [];
+  let grouped = {};
+  let currentFilter = "all";
+  let currentSearch = "";
+
+  function categorise(path) {
+    for (const rule of CATEGORY_RULES) {
+      if (rule.test(path)) return rule.key;
+    }
+    return "other";
+  }
+
+  function buildFilters() {
+    const keys = ["all"].concat(CATEGORY_RULES.map(r => r.key));
+    const labels = Object.fromEntries(
+      [["all","All"], ...CATEGORY_RULES.map(r => [r.key, r.label])]
+    );
+    filterRow.innerHTML = "";
+    keys.forEach(key => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "filter-chip" + (key === currentFilter ? " active" : "");
+      chip.textContent = labels[key] || key;
+      chip.dataset.filterKey = key;
+      chip.addEventListener("click", () => {
+        currentFilter = key;
+        Array.from(filterRow.children).forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.filterKey === key);
+        });
+        renderPanels();
+      });
+      filterRow.appendChild(chip);
+    });
+  }
+
+  function renderPanels() {
+    panelsContainer.innerHTML = "";
+    const search = currentSearch.trim().toLowerCase();
+    let visibleGroups = 0;
+    let visibleLabs = 0;
+
+    CATEGORY_RULES.forEach(rule => {
+      const key = rule.key;
+      if (currentFilter !== "all" && currentFilter !== key) return;
+
+      const labs = (grouped[key] || []).filter(lab => {
+        if (!search) return true;
+        const hay = (lab.name + " " + lab.path).toLowerCase();
+        return hay.includes(search);
+      });
+
+      if (!labs.length) return;
+      visibleGroups++;
+
+      const panel = document.createElement("section");
+      panel.className = "panel";
+
+      const header = document.createElement("div");
+      header.className = "panel-header";
+
+      const title = document.createElement("div");
+      title.className = "panel-title";
+      title.textContent = rule.label;
+
+      const count = document.createElement("div");
+      count.className = "panel-count";
+      count.textContent = labs.length + " lab" + (labs.length !== 1 ? "s" : "");
+
+      header.appendChild(title);
+      header.appendChild(count);
+      panel.appendChild(header);
+
+      const grid = document.createElement("div");
+      grid.className = "lab-grid";
+
+      labs.forEach(lab => {
+        visibleLabs++;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "lab-btn";
+        if (/market|_MARKET_|installer_mw_calc/i.test(lab.path)) {
+          btn.classList.add("hot");
+        }
+        btn.addEventListener("click", () => {
+          const target = lab.path.replace(/^\.\//, "");
+          const url = target + "?x=" + Date.now();
+          window.location.href = url;
+        });
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "lab-name";
+        nameSpan.textContent = lab.name;
+
+        const pathSpan = document.createElement("span");
+        pathSpan.className = "lab-path";
+        pathSpan.textContent = lab.path.replace(/^\.\//, "");
+
+        btn.appendChild(nameSpan);
+        btn.appendChild(pathSpan);
+        grid.appendChild(btn);
+      });
+
+      panel.appendChild(grid);
+      panelsContainer.appendChild(panel);
+    });
+
+    statusText.textContent =
+      "Filter: " +
+      (currentFilter === "all" ? "ALL CATEGORIES" : currentFilter.toUpperCase()) +
+      (search ? (" · Search: \"" + search + "\"") : "") +
+      " · Showing " + visibleLabs + " lab" + (visibleLabs !== 1 ? "s" : "") +
+      " in " + visibleGroups + " group" + (visibleGroups !== 1 ? "s" : "") + ".";
+  }
+
+  function hydrateGroups() {
+    grouped = {};
+    CATEGORY_RULES.forEach(r => grouped[r.key] = []);
+    allLabs.forEach(lab => {
+      grouped[lab.category].push(lab);
+    });
+    // sort each bucket by name
+    Object.values(grouped).forEach(list => {
+      list.sort((a,b) => a.name.localeCompare(b.name));
+    });
+  }
+
+  function parseCanonical(text) {
+    const lines = text.split(/\r?\n/);
+    const labs = [];
+    for (let line of lines) {
+      line = line.trim();
+      if (!line || /^#/.test(line)) continue;
+      if (line.startsWith("./")) line = line.slice(2);
+      const name = line.split("/").pop();
+      const cat = categorise(line);
+      labs.push({ path: "./" + line, name, category: cat });
+    }
+    return labs;
+  }
+
+  function boot() {
+    fetch("canonical_labs.txt?x=" + Date.now())
+      .then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.text();
+      })
+      .then(text => {
+        allLabs = parseCanonical(text);
+        hydrateGroups();
+        metricsTotal.textContent = allLabs.length;
+        const nonEmptyGroups = CATEGORY_RULES
+          .map(r => grouped[r.key] || [])
+          .filter(arr => arr.length > 0)
+          .length;
+        metricsGroups.textContent = nonEmptyGroups;
+        statusText.textContent =
+          "Lab deck online. Tap any panel button to open a lab; search and filters are client-side.";
+        buildFilters();
+        renderPanels();
+      })
+      .catch(err => {
+        console.error("Error loading canonical_labs.txt", err);
+        errorBanner.style.display = "block";
+        statusText.textContent =
+          "Error loading canonical_labs.txt — see console log for details.";
+      });
+
+    searchInput.addEventListener("input", function() {
+      currentSearch = this.value || "";
+      renderPanels();
+    });
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
