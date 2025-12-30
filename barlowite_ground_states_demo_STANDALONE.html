@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>QDS Kagome Ground-State Lab — Barlowite Family (Neon v3)</title>
+<style>
+  :root{
+    --bg:#02020a;
+    --bg2:#08041b;
+    --panel:#070614;
+    --panel2:#120d24;
+    --text:#f6f4ff;
+    --muted:#a7a3d0;
+    --accent:#7a5cff;
+    --red:#ff4d6d;
+    --orange:#ff9f43;
+    --yellow:#ffe66d;
+    --green:#2dffb3;
+    --blue:#4dd0ff;
+    --purple:#b388ff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:
+      radial-gradient(1400px 900px at 10% -10%,#31135c00,#31135c),
+      radial-gradient(1200px 800px at 90% 120%,#0d2b6c,#02020a);
+    color:var(--text);
+  }
+  header{
+    padding:12px 14px 10px;
+    border-bottom:1px solid rgba(122,92,255,0.35);
+    background:linear-gradient(135deg,rgba(9,4,30,0.95),rgba(2,2,12,0.98));
+    box-shadow:0 18px 60px rgba(0,0,0,0.75);
+    position:sticky;top:0;z-index:10;
+  }
+  .h-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .brand{
+    display:flex;align-items:center;gap:8px;
+    padding:6px 10px;
+    border-radius:999px;
+    background:radial-gradient(circle at 0 0,#ff4d6d55,#02020a);
+    border:1px solid rgba(255,77,109,0.7);
+    box-shadow:0 0 18px rgba(255,77,109,0.45);
+    font-weight:900;
+    font-size:13px;
+    letter-spacing:.4px;
+  }
+  .brand-dot{
+    width:12px;height:12px;border-radius:50%;
+    background:conic-gradient(from 120deg,var(--green),var(--yellow),var(--orange),var(--red),var(--blue),var(--green));
+    box-shadow:0 0 14px rgba(45,255,179,0.9);
+  }
+  .title-main{font-size:15px;font-weight:900;letter-spacing:.5px;}
+  .badge{
+    font-size:11px;
+    padding:4px 8px;
+    border-radius:999px;
+    border:1px solid rgba(77,208,255,0.6);
+    background:rgba(6,10,30,0.9);
+    color:var(--muted);
+  }
+  .badge b{color:var(--blue);}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .tabbtn{
+    appearance:none;border-radius:999px;
+    border:1px solid rgba(122,92,255,0.4);
+    background:radial-gradient(circle at 0 0,rgba(45,255,179,0.1),rgba(6,6,20,0.95));
+    color:var(--muted);padding:7px 12px;
+    font-size:12px;font-weight:800;
+  }
+  .tabbtn.active{
+    color:var(--text);
+    border-color:var(--accent);
+    box-shadow:
+      0 0 0 1px rgba(122,92,255,0.5),
+      0 0 18px rgba(122,92,255,0.8),
+      0 0 40px rgba(77,208,255,0.8);
+    background:radial-gradient(circle at 0 0,rgba(45,255,179,0.25),rgba(9,4,40,0.98));
+  }
+
+  main{padding:12px;max-width:1250px;margin:0 auto 40px;}
+  .grid{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media(min-width:1040px){
+    .grid{grid-template-columns:560px minmax(0,1fr);}
+  }
+
+  .card{
+    position:relative;
+    border-radius:22px;
+    padding:1px;
+    background:
+      linear-gradient(135deg,rgba(255,77,109,0.82),rgba(255,159,67,0.75),rgba(255,230,109,0.7),rgba(45,255,179,0.8),rgba(77,208,255,0.85));
+    box-shadow:0 20px 60px rgba(0,0,0,0.85);
+  }
+  .card-inner{
+    border-radius:21px;
+    background:radial-gradient(900px 700px at 10% -20%,#281447,#050413);
+    border:1px solid rgba(17,16,40,0.95);
+  }
+  .hd{
+    padding:10px 14px 8px;
+    border-bottom:1px solid rgba(122,92,255,0.4);
+    background:linear-gradient(135deg,rgba(13,11,40,0.96),rgba(6,4,22,0.96));
+    border-radius:21px 21px 0 0;
+  }
+  .title{
+    font-size:13px;font-weight:900;
+    letter-spacing:.3px;
+  }
+  .subtitle{
+    font-size:11px;color:var(--muted);margin-top:2px;
+  }
+  .bd{padding:12px 14px 14px;}
+
+  label{display:block;font-size:11px;color:var(--muted);margin:9px 0 5px;}
+  textarea,input,select{
+    width:100%;background:rgba(2,2,10,0.95);color:var(--text);
+    border-radius:14px;border:1px solid rgba(77,208,255,0.4);
+    padding:9px 10px;font-size:12px;
+  }
+  textarea{min-height:150px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  button{
+    appearance:none;
+    padding:9px 12px;
+    border-radius:999px;
+    border:1px solid rgba(77,208,255,0.45);
+    background:radial-gradient(circle at 0 0,rgba(77,208,255,0.18),rgba(4,8,25,0.98));
+    color:var(--text);
+    font-size:11px;font-weight:900;
+  }
+  button.primary{
+    border-color:rgba(45,255,179,0.75);
+    box-shadow:0 0 14px rgba(45,255,179,0.8);
+  }
+  button:hover{border-color:rgba(180,230,255,0.95);}
+
+  .kpi,.kpi3{
+    display:grid;gap:8px;margin-top:10px;
+  }
+  .kpi{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .kpi3{grid-template-columns:repeat(3,minmax(0,1fr));}
+  @media(max-width:780px){.kpi3{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  .box{
+    border-radius:18px;
+    padding:8px 10px;
+    background:radial-gradient(600px 400px at 0 0,rgba(77,208,255,0.16),rgba(3,4,15,0.96));
+    border:1px solid rgba(35,45,90,0.9);
+  }
+  .k{font-size:11px;color:var(--muted);}
+  .v{font-size:13px;font-weight:900;margin-top:3px;}
+
+  .note{font-size:11px;color:var(--muted);line-height:1.4;}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;
+    border-radius:999px;border:1px solid rgba(122,92,255,0.6);
+    padding:4px 8px;font-size:11px;
+    background:radial-gradient(circle at 0 0,rgba(122,92,255,0.25),rgba(6,4,28,0.98));
+    color:var(--muted);
+  }
+  .pill input{width:auto;margin:0;}
+
+  canvas{
+    width:100%;height:440px;display:block;
+    background:radial-gradient(900px 620px at 10% -10%,#20124a,#050313);
+    border-radius:18px;
+    border:1px solid rgba(36,32,74,0.95);
+  }
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .chip{
+    font-size:11px;
+    border-radius:999px;
+    border:1px solid rgba(77,208,255,0.4);
+    background:rgba(4,6,23,0.96);
+    padding:4px 7px;
+    color:var(--muted);
+  }
+  .chip .sw{
+    display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;
+  }
+  .hidden{display:none;}
+  .warn-text{color:var(--orange);margin-top:4px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="h-top">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <span>QDS Kagome Ground-State Lab</span>
+    </div>
+    <span class="title-main">Barlowite Family — Rival Ground States (Neon v3)</span>
+    <span class="badge"><b>Offline</b> · Phone-first · No deps</span>
+    <span class="badge">Neon mode: χ(T), Curie–Weiss, ΔS(H)</span>
+  </div>
+  <div class="tabs">
+    <button class="tabbtn active" data-tab="sus">1 · Susceptibility</button>
+    <button class="tabbtn" data-tab="cw">2 · Curie–Weiss</button>
+    <button class="tabbtn" data-tab="heat">3 · Multi-field Heat / ΔS(H)</button>
+    <button class="tabbtn" data-tab="notes">4 · Notes</button>
+  </div>
+</header>
+
+<main>
+  <!-- SUSCEPTIBILITY -->
+  <section id="tab-sus">
+    <div class="grid">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hd">
+            <div class="title">Input: T, χ<sub>Zn0.56</sub>, χ<sub>Zn0.95</sub></div>
+            <div class="subtitle">Two compositions → impurity term + kagome baseline via Δn solve</div>
+          </div>
+          <div class="bd">
+            <div class="note">
+              Paste CSV with <b>T_K, chi056, chi095</b>. Delimiters flexible; “#” lines ignored.
+            </div>
+
+            <label>Impurity fractions n<sub>imp</sub> (interlayer Cu<sup>2+</sup> occupancy)</label>
+            <div class="row2">
+              <div>
+                <div class="note">n<sub>imp</sub>(Zn0.56)</div>
+                <input id="n056" type="number" step="0.001" value="0.44"/>
+              </div>
+              <div>
+                <div class="note">n<sub>imp</sub>(Zn0.95)</div>
+                <input id="n095" type="number" step="0.001" value="0.05"/>
+              </div>
+            </div>
+
+            <label>CSV</label>
+            <textarea id="chiCsv"></textarea>
+
+            <div class="btnrow">
+              <button class="primary" id="btnSynth">Load synthetic demo</button>
+              <button class="primary" id="btnComputeChi">Compute χ<sub>imp</sub> & χ<sub>kagome</sub></button>
+              <button id="btnExportChi">Export derived CSV</button>
+              <button id="btnClearChi">Clear</button>
+            </div>
+
+            <div class="kpi">
+              <div class="box">
+                <div class="k">Rows parsed</div>
+                <div class="v" id="chiRows">0</div>
+              </div>
+              <div class="box">
+                <div class="k">Δn = n<sub>0.56</sub> − n<sub>0.95</sub></div>
+                <div class="v" id="dnVal">0.390000</div>
+              </div>
+            </div>
+
+            <div class="note" style="margin-top:10px">
+              Output: χ<sub>0.56</sub>, χ<sub>0.95</sub>, χ<sub>imp</sub>, χ<sub>kagome</sub>.  
+              Next: Curie–Weiss tab → fit χ<sub>imp</sub>(T).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-inner">
+          <div class="hd">
+            <div class="title">χ(T) — raw & decomposed</div>
+            <div class="subtitle">Neon overlay: red/blue = total; green = impurity; yellow = kagome</div>
+          </div>
+          <div class="bd">
+            <canvas id="plotChi" width="1040" height="560"></canvas>
+            <div class="legend" id="legendChi"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CURIE–WEISS -->
+  <section id="tab-cw" class="hidden">
+    <div class="grid">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hd">
+            <div class="title">Curie–Weiss fit on χ<sub>imp</sub>(T)</div>
+            <div class="subtitle">Linearized 1/χ = (1/C)·T − Θ/C · (no χ₀)</div>
+          </div>
+          <div class="bd">
+            <label class="pill">
+              <input id="paperMode" type="checkbox"/>
+              Paper Mode · lock fit 10–50 K & highlight band
+            </label>
+
+            <label style="margin-top:10px">Fit window (K)</label>
+            <div class="row2">
+              <input id="fitTmin" type="number" step="0.1" value="10"/>
+              <input id="fitTmax" type="number" step="0.1" value="50"/>
+            </div>
+
+            <label>Ignore points where χ<sub>imp</sub> ≤ 0</label>
+            <select id="ignoreNeg">
+              <option value="1" selected>Yes (recommended)</option>
+              <option value="0">No</option>
+            </select>
+
+            <div class="btnrow">
+              <button class="primary" id="btnFitCW">Fit Curie–Weiss</button>
+              <button id="btnPlotInv">Plot 1/χ view</button>
+            </div>
+
+            <div class="kpi3">
+              <div class="box"><div class="k">C (Curie constant)</div><div class="v" id="Cval">—</div></div>
+              <div class="box"><div class="k">Θ (K)</div><div class="v" id="Thval">—</div></div>
+              <div class="box">
+                <div class="k">μ<sub>eff</sub> (μ<sub>B</sub>) ≈ 2.828√C</div>
+                <div class="v" id="mueff">—</div>
+              </div>
+              <div class="box"><div class="k">Fit points used</div><div class="v" id="fitN">—</div></div>
+              <div class="box"><div class="k">Window used</div><div class="v" id="fitWinUsed">—</div></div>
+              <div class="box"><div class="k">Mode</div><div class="v" id="fitModeUsed">—</div></div>
+            </div>
+            <div id="mueffWarn" class="warn-text"></div>
+
+            <div class="note" style="margin-top:8px">
+              μ<sub>eff</sub> assumes χ in emu·K/mol. If μ<sub>eff</sub> looks wildly off for Cu<sup>2+</sup>, suspect unit mismatch.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-inner">
+          <div class="hd">
+            <div class="title">Fit plot</div>
+            <div class="subtitle">Toggle between χ(T) and 1/χ(T) views</div>
+          </div>
+          <div class="bd">
+            <canvas id="plotCW" width="1040" height="560"></canvas>
+            <div class="legend" id="legendCW"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MULTI-FIELD HEAT / ΔS(H) -->
+  <section id="tab-heat" class="hidden">
+    <div class="grid">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hd">
+            <div class="title">Multi-field C/T blocks → ΔS(H)</div>
+            <div class="subtitle">Paste 0/3/5/7/9 T blocks · integrate ΔS = ∫(C/T)dT</div>
+          </div>
+          <div class="bd">
+            <label>Composition label</label>
+            <select id="compPick">
+              <option value="Zn0.95" selected>Zn0.95 (e.g. bulk)</option>
+              <option value="Zn0.56">Zn0.56 (e.g. crystal)</option>
+            </select>
+
+            <label style="margin-top:8px">Field values (T) for blocks</label>
+            <div class="row3">
+              <input id="H0" type="number" step="0.1" value="0"/>
+              <input id="H3" type="number" step="0.1" value="3"/>
+              <input id="H5" type="number" step="0.1" value="5"/>
+            </div>
+            <div class="row3" style="margin-top:8px">
+              <input id="H7" type="number" step="0.1" value="7"/>
+              <input id="H9" type="number" step="0.1" value="9"/>
+              <div></div>
+            </div>
+
+            <label>Blocks (order: H0, H3, H5, H7, H9 — separated by blank lines)</label>
+            <textarea id="ctMultiCsv"></textarea>
+
+            <label>Integration window (K)</label>
+            <div class="row2">
+              <input id="ctTmin" type="number" step="0.01" value="0.10"/>
+              <input id="ctTmax" type="number" step="0.01" value="10.00"/>
+            </div>
+
+            <label class="pill" style="margin-top:10px">
+              <input id="normToZero" type="checkbox"/>
+              Plot field-induced entropy: ΔS(H) − ΔS(0)
+            </label>
+
+            <div class="btnrow">
+              <button class="primary" id="btnSynthMulti">Load synthetic multi-field</button>
+              <button class="primary" id="btnComputeMulti">Compute ΔS(H) for this composition</button>
+              <button id="btnClearCurves">Clear stored ΔS(H) curves</button>
+              <button id="btnExportCurves">Export ΔS(H) CSV</button>
+            </div>
+
+            <div class="kpi">
+              <div class="box"><div class="k">Blocks parsed</div><div class="v" id="blkN">0</div></div>
+              <div class="box"><div class="k">Last ΔS list</div><div class="v" id="lastDs">—</div></div>
+            </div>
+
+            <div class="note" style="margin-top:10px">
+              Run once for Zn0.95, once for Zn0.56 — the ΔS(H) plot will overlay one neon line per composition.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-inner">
+          <div class="hd">
+            <div class="title">ΔS(H) — entropy vs field</div>
+            <div class="subtitle">Straight from area under C/T (boardroom-safe story)</div>
+          </div>
+          <div class="bd">
+            <canvas id="plotDS" width="1040" height="560"></canvas>
+            <div class="legend" id="legendDS"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NOTES -->
+  <section id="tab-notes" class="hidden">
+    <div class="card">
+      <div class="card-inner">
+        <div class="hd">
+          <div class="title">What this lab is actually doing</div>
+          <div class="subtitle">Plain-English mapping from math → demo</div>
+        </div>
+        <div class="bd">
+          <div class="note">
+            • <b>Susceptibility:</b> two samples with different impurity loading n<sub>imp</sub> let us solve<br/>
+            &nbsp;&nbsp;χ<sub>imp</sub>(T) = [χ<sub>0.56</sub> − χ<sub>0.95</sub>] / [n<sub>0.56</sub> − n<sub>0.95</sub>]  
+            &nbsp;&nbsp;χ<sub>kagome</sub>(T) = χ<sub>0.95</sub> − n<sub>0.95</sub>·χ<sub>imp</sub>(T)<br/><br/>
+            • <b>Curie–Weiss fit:</b> χ<sub>imp</sub>(T) ≈ C / (T − Θ). We fit 1/χ vs T; Paper Mode enforces 10–50 K and marks the band.<br/><br/>
+            • <b>Heat capacity:</b> for each field H we integrate entropy from C/T:<br/>
+            &nbsp;&nbsp;ΔS(H) = ∫(C/T) dT (trapezoid rule). Toggle “ΔS(H) − ΔS(0)” to show field-induced entropy only.<br/><br/>
+            This turns a static paper figure into a live instrument — and lets you drop your own digitized data in on the fly.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+/************* tiny utils *************/
+function $(id){return document.getElementById(id);}
+function fmt(x,dp=6){
+  if(!isFinite(x)) return "—";
+  const ax=Math.abs(x);
+  if(ax>=1000) return x.toFixed(2);
+  if(ax>=10) return x.toFixed(3);
+  if(ax>=1) return x.toFixed(4);
+  if(ax>=0.01) return x.toFixed(dp);
+  return x.toExponential(3);
+}
+function parseCSV(text,ncols){
+  const rows=[];
+  const lines=(text||"").split(/\r?\n/);
+  for(const raw of lines){
+    const line=raw.trim();
+    if(!line || line.startsWith("#")) continue;
+    const parts=line.split(/[\s,;]+/).filter(Boolean);
+    if(parts.length<ncols) continue;
+    const vals=parts.slice(0,ncols).map(Number);
+    if(vals.some(v=>!isFinite(v))) continue;
+    rows.push(vals);
+  }
+  rows.sort((a,b)=>a[0]-b[0]);
+  return rows;
+}
+function splitBlocks(text){
+  const blocks=[];
+  const parts=(text||"").trim().split(/\n\s*\n+/);
+  for(const p of parts){const t=p.trim();if(t)blocks.push(t);}
+  return blocks;
+}
+function downloadText(name,text){
+  const blob=new Blob([text],{type:"text/plain"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+
+/************* plotting *************/
+function plotSeries(canvas,series,opts){
+  const ctx=canvas.getContext("2d");
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const padL=60,padR=16,padT=22,padB=46;
+  const x0=padL,x1=W-padR,y0=padT,y1=H-padB;
+
+  let xmin=Infinity,xmax=-Infinity,ymin=Infinity,ymax=-Infinity;
+  for(const s of series){
+    if(!s.data||!s.data.length)continue;
+    for(const p of s.data){
+      xmin=Math.min(xmin,p[0]);xmax=Math.max(xmax,p[0]);
+      ymin=Math.min(ymin,p[1]);ymax=Math.max(ymax,p[1]);
+    }
+  }
+  if(!isFinite(xmin)){xmin=0;xmax=1;ymin=0;ymax=1;}
+  if(xmin===xmax)xmax=xmin+1;
+  if(ymin===ymax)ymax=ymin+1;
+  const xm=(xmax-xmin)*0.04,ym=(ymax-ymin)*0.08;
+  xmin-=xm;xmax+=xm;ymin-=ym;ymax+=ym;
+
+  function xpix(x){return x0+(x-xmin)*(x1-x0)/(xmax-xmin);}
+  function ypix(y){return y1-(y-ymin)*(y1-y0)/(ymax-ymin);}
+
+  // grid
+  ctx.lineWidth=1;
+  ctx.strokeStyle="rgba(40,40,90,0.7)";
+  ctx.fillStyle="rgba(235,234,255,0.92)";
+  ctx.font="11px system-ui,-apple-system,Segoe UI,Roboto,Arial";
+  const gx=6,gy=6;
+  for(let i=0;i<=gx;i++){
+    const x=x0+(x1-x0)*i/gx;
+    ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();
+  }
+  for(let i=0;i<=gy;i++){
+    const y=y0+(y1-y0)*i/gy;
+    ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();
+  }
+
+  // shaded bands (fit regions etc)
+  if(opts && opts.bands){
+    for(const b of opts.bands){
+      const xl=xpix(b.x0),xr=xpix(b.x1);
+      ctx.fillStyle=b.color||"rgba(255,230,109,0.09)";
+      ctx.fillRect(xl,y0,Math.max(0,xr-xl),y1-y0);
+    }
+  }
+
+  // axes labels + ticks
+  ctx.fillStyle="rgba(232,231,255,0.95)";
+  ctx.fillText(opts?.xlabel||"X",x0,y1+26);
+  ctx.save();ctx.translate(16,y0+(y1-y0)/2);ctx.rotate(-Math.PI/2);
+  ctx.fillText(opts?.ylabel||"Y",0,0);ctx.restore();
+
+  ctx.fillStyle="rgba(167,163,211,0.9)";
+  for(let i=0;i<=gx;i++){
+    const xv=xmin+(xmax-xmin)*i/gx;
+    const x=x0+(x1-x0)*i/gx;
+    ctx.fillText(fmt(xv,3),x-12,y1+18);
+  }
+  for(let i=0;i<=gy;i++){
+    const yv=ymin+(ymax-ymin)*i/gy;
+    const y=y1-(y1-y0)*i/gy;
+    ctx.fillText(fmt(yv,6),6,y+3);
+  }
+
+  // series
+  for(const s of series){
+    if(!s.data||s.data.length<2)continue;
+    ctx.lineWidth=2.5;
+    ctx.strokeStyle=s.color||"rgba(244,244,255,1)";
+    ctx.beginPath();
+    let first=true;
+    for(const p of s.data){
+      const xx=xpix(p[0]),yy=ypix(p[1]);
+      if(first){ctx.moveTo(xx,yy);first=false;}else ctx.lineTo(xx,yy);
+    }
+    ctx.stroke();
+  }
+
+  // vertical markers
+  if(opts && opts.markers){
+    for(const m of opts.markers){
+      const x=xpix(m.x);
+      ctx.lineWidth=1.6;
+      ctx.setLineDash([6,6]);
+      ctx.strokeStyle=m.color||"rgba(255,230,109,0.9)";
+      ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();
+      ctx.setLineDash([]);
+      if(m.label){
+        ctx.fillStyle=m.color||"rgba(255,230,109,0.9)";
+        ctx.font="700 11px system-ui,-apple-system";
+        ctx.fillText(m.label,x+4,y0+14);
+      }
+    }
+  }
+
+  if(opts && opts.title){
+    ctx.fillStyle="rgba(244,244,255,0.98)";
+    ctx.font="900 13px system-ui,-apple-system,Segoe UI,Roboto,Arial";
+    ctx.fillText(opts.title,x0,14);
+  }
+}
+
+/************* global state *************/
+let chiData={rows:[],T:[],chi056:[],chi095:[],chiImp:[],chiKag:[]};
+let cwFit={C:NaN,Theta:NaN,n:0,view:"chi"};
+let dsCurves={ "Zn0.95":null,"Zn0.56":null };
+
+/************* susceptibility *************/
+function loadSyntheticChi(){
+  const n056=Number($("n056").value)||0.44;
+  const n095=Number($("n095").value)||0.05;
+  const ThetaK=200,chi0=0.0009,A=0.55,Cimp=0.06,ThetaImp=-3;
+  const lines=["# T_K, chi056, chi095 (synthetic demo)"];
+  for(let T=2;T<=300;T+=(T<20?2:(T<60?5:10))){
+    const chiK=chi0+A/(T+ThetaK);
+    const chiImp=Cimp/(T-ThetaImp);
+    const chi095=chiK+n095*chiImp;
+    const chi056=chiK+n056*chiImp;
+    lines.push([T.toFixed(2),chi056.toFixed(8),chi095.toFixed(8)].join(", "));
+  }
+  $("chiCsv").value=lines.join("\n");
+}
+function computeChi(){
+  const rows=parseCSV($("chiCsv").value,3);
+  chiData.rows=rows;
+  $("chiRows").textContent=String(rows.length);
+  const n056=Number($("n056").value),n095=Number($("n095").value);
+  const dn=n056-n095;
+  $("dnVal").textContent=fmt(dn,6);
+  if(!isFinite(dn)||Math.abs(dn)<1e-12){alert("Δn = 0 → can’t solve for impurity.");return;}
+  const T=[],c056=[],c095=[],cImp=[],cK=[];
+  for(const r of rows){
+    const t=r[0],a=r[1],b=r[2];
+    const imp=(a-b)/dn;
+    const kag=b-n095*imp;
+    T.push(t);c056.push(a);c095.push(b);cImp.push(imp);cK.push(kag);
+  }
+  chiData.T=T;chiData.chi056=c056;chiData.chi095=c095;chiData.chiImp=cImp;chiData.chiKag=cK;
+  renderChiPlot();
+}
+function renderChiPlot(){
+  const s=[];
+  if(chiData.T.length){
+    const mk=(name,arr,color)=>({name,color,data:chiData.T.map((t,i)=>[t,arr[i]])});
+    s.push(mk("χ_Zn0.56",chiData.chi056,"rgba(255,77,109,0.98)")); // red
+    s.push(mk("χ_Zn0.95",chiData.chi095,"rgba(77,208,255,0.98)")); // blue
+    s.push(mk("χ_imp",chiData.chiImp,"rgba(45,255,179,0.98)"));    // green
+    s.push(mk("χ_kagome",chiData.chiKag,"rgba(255,230,109,0.98)"));// yellow
+  }
+  plotSeries($("plotChi"),s,{
+    title:"Susceptibility & derived components",
+    xlabel:"T (K)",
+    ylabel:"χ (consistent units)"
+  });
+  const leg=$("legendChi");leg.innerHTML="";
+  for(const it of s){
+    const div=document.createElement("div");
+    div.className="chip";
+    div.innerHTML=`<span class="sw" style="background:${it.color}"></span>${it.name}`;
+    leg.appendChild(div);
+  }
+}
+
+/************* Curie–Weiss *************/
+function applyPaperMode(){
+  const on=$("paperMode").checked;
+  $("fitTmin").disabled=on;
+  $("fitTmax").disabled=on;
+  if(on){$("fitTmin").value="10";$("fitTmax").value="50";}
+  renderCWPlot(cwFit.view==="inv");
+}
+function fitCurieWeiss(){
+  if(!chiData.T.length||!chiData.chiImp.length){alert("Compute χ_imp first on the susceptibility tab.");return;}
+  if($("paperMode").checked){$("fitTmin").value="10";$("fitTmax").value="50";}
+  const Tmin=Number($("fitTmin").value),Tmax=Number($("fitTmax").value);
+  const ignoreNeg=$("ignoreNeg").value==="1";
+
+  const pts=[];
+  for(let i=0;i<chiData.T.length;i++){
+    const T=chiData.T[i],chi=chiData.chiImp[i];
+    if(T<Tmin||T>Tmax)continue;
+    if(ignoreNeg&&chi<=0)continue;
+    if(!isFinite(chi)||Math.abs(chi)<1e-12)continue;
+    pts.push([T,1/chi]);
+  }
+  const n=pts.length;
+  $("fitN").textContent=String(n);
+  $("fitWinUsed").textContent=`${fmt(Tmin,2)}–${fmt(Tmax,2)} K`;
+  $("fitModeUsed").textContent=$("paperMode").checked?"Paper":"Custom";
+  if(n<3){alert("Not enough points in fit window.");return;}
+
+  let Sx=0,Sy=0,Sxx=0,Sxy=0;
+  for(const p of pts){const x=p[0],y=p[1];Sx+=x;Sy+=y;Sxx+=x*x;Sxy+=x*y;}
+  const denom=n*Sxx-Sx*Sx;
+  if(Math.abs(denom)<1e-12){alert("Degenerate fit.");return;}
+  const m=(n*Sxy-Sx*Sy)/denom;
+  const b=(Sy-m*Sx)/n;
+  const C=1/m;
+  const Theta=-b/m;
+  cwFit.C=C;cwFit.Theta=Theta;cwFit.n=n;
+
+  $("Cval").textContent=fmt(C,6);
+  $("Thval").textContent=fmt(Theta,4);
+  const mu_eff=2.828*Math.sqrt(Math.max(C,0));
+  $("mueff").textContent=isFinite(mu_eff)?fmt(mu_eff,4):"—";
+
+  // simple sanity warning: Cu2+ should be ~1–2 μB impurity-wise here
+  const warn=$("mueffWarn");
+  if(isFinite(mu_eff)&&(mu_eff<0.3||mu_eff>3.5)){
+    warn.textContent="⚠ μ_eff is outside typical Cu²⁺ range. Double-check units for χ (emu·K/mol expected).";
+  }else{
+    warn.textContent="";
+  }
+
+  renderCWPlot(cwFit.view==="inv");
+}
+function renderCWPlot(showInv){
+  cwFit.view=showInv?"inv":"chi";
+  if(!chiData.T.length||!chiData.chiImp.length){
+    plotSeries($("plotCW"),[],{title:"No χ_imp data yet",xlabel:"T (K)",ylabel:""});return;
+  }
+  if($("paperMode").checked){$("fitTmin").value="10";$("fitTmax").value="50";}
+  const Tmin=Number($("fitTmin").value),Tmax=Number($("fitTmax").value);
+  const ignoreNeg=$("ignoreNeg").value==="1";
+
+  const dataPts=[];
+  for(let i=0;i<chiData.T.length;i++){
+    const T=chiData.T[i],chi=chiData.chiImp[i];
+    if(!isFinite(chi))continue;
+    if(showInv){
+      if(ignoreNeg&&chi<=0)continue;
+      dataPts.push([T,1/chi]);
+    }else{
+      dataPts.push([T,chi]);
+    }
+  }
+
+  const fitPts=[];
+  if(isFinite(cwFit.C)&&isFinite(cwFit.Theta)){
+    for(let T=Tmin;T<=Tmax;T+=(Tmax-Tmin)/160){
+      const chiFit=cwFit.C/(T-cwFit.Theta);
+      fitPts.push([T,showInv?1/chiFit:chiFit]);
+    }
+  }
+
+  const series=[
+    {name:showInv?"1/χ_imp (data)":"χ_imp (data)",color:"rgba(45,255,179,0.98)",data:dataPts}
+  ];
+  if(fitPts.length){
+    series.push({name:showInv?"1/χ (fit)":"χ (fit)",color:"rgba(255,230,109,0.98)",data:fitPts});
+  }
+
+  const markers=$("paperMode").checked?[
+    {x:Tmin,label:`fit ${fmt(Tmin,0)}K`,color:"rgba(255,230,109,0.95)"},
+    {x:Tmax,label:`${fmt(Tmax,0)}K`,color:"rgba(255,230,109,0.95)"}
+  ]:[];
+  const bands=$("paperMode").checked?[{x0:Tmin,x1:Tmax,color:"rgba(255,230,109,0.08)"}]:[];
+
+  plotSeries($("plotCW"),series,{
+    title:showInv?"Curie–Weiss linearized view (1/χ vs T)":"Curie–Weiss fit on χ_imp(T)",
+    xlabel:"T (K)",
+    ylabel:showInv?"1/χ":"χ",
+    markers,bands
+  });
+
+  const leg=$("legendCW");leg.innerHTML="";
+  for(const it of series){
+    const div=document.createElement("div");
+    div.className="chip";
+    div.innerHTML=`<span class="sw" style="background:${it.color}"></span>${it.name}`;
+    leg.appendChild(div);
+  }
+  if(bands.length){
+    const bandChip=document.createElement("div");
+    bandChip.className="chip";
+    bandChip.innerHTML=`<span class="sw" style="background:rgba(255,230,109,0.6)"></span>Fit window (Paper Mode)`;
+    leg.appendChild(bandChip);
+  }
+}
+
+/************* multi-field entropy *************/
+function trapezoidArea(rows,Tmin,Tmax){
+  const pts=rows.filter(r=>r[0]>=Tmin&&r[0]<=Tmax).sort((a,b)=>a[0]-b[0]);
+  if(pts.length<2)return NaN;
+  let area=0;
+  for(let i=1;i<pts.length;i++){
+    const x0=pts[i-1][0],y0=pts[i-1][1];
+    const x1=pts[i][0],y1=pts[i][1];
+    area+=0.5*(y0+y1)*(x1-x0);
+  }
+  return area;
+}
+function loadSyntheticMulti(){
+  const Hs=[Number($("H0").value),Number($("H3").value),Number($("H5").value),Number($("H7").value),Number($("H9").value)];
+  const blocks=[];
+  for(let bi=0;bi<5;bi++){
+    const H=Hs[bi];
+    const sup=1-0.06*bi;
+    const lines=[`# H=${H} T synthetic (T_K, C/T)`];
+    for(let i=0;i<200;i++){
+      const t=0.1*Math.pow(10,i/199*2);
+      const hump=sup*0.14*Math.exp(-Math.pow((Math.log(t)-Math.log(1.8))/0.55,2));
+      const nuclear=(0.008/(t*t))*(1+0.03*bi);
+      const base=0.06+0.02*Math.tanh((t-0.8)/1.2);
+      const ct=base+hump+nuclear;
+      lines.push([t.toFixed(4),ct.toFixed(6)].join(", "));
+    }
+    blocks.push(lines.join("\n"));
+  }
+  $("ctMultiCsv").value=blocks.join("\n\n");
+}
+function computeMulti(){
+  const comp=$("compPick").value;
+  const Hs=[Number($("H0").value),Number($("H3").value),Number($("H5").value),Number($("H7").value),Number($("H9").value)];
+  const Tmin=Number($("ctTmin").value),Tmax=Number($("ctTmax").value);
+  const blocks=splitBlocks($("ctMultiCsv").value);
+  $("blkN").textContent=String(blocks.length);
+  if(!blocks.length){alert("Paste at least one C/T block.");return;}
+  const useN=Math.min(5,blocks.length);
+  const dS=[],usedH=[],parts=[];
+  for(let i=0;i<useN;i++){
+    const rows=parseCSV(blocks[i],2);
+    const area=trapezoidArea(rows,Tmin,Tmax);
+    usedH.push(Hs[i]);dS.push(area);
+    parts.push(`${fmt(Hs[i],1)}T:${fmt(area,6)}`);
+  }
+  $("lastDs").textContent=parts.join(" | ");
+  dsCurves[comp]={H:usedH,dS:dS};
+  renderDSPlot();
+}
+function renderDSPlot(){
+  const norm=$("normToZero").checked;
+  const series=[];
+  function mk(comp,color){
+    const c=dsCurves[comp];
+    if(!c) return;
+    const base=(norm&&c.dS.length)?c.dS[0]:0;
+    series.push({
+      name:norm?`${comp} [ΔS−ΔS(0)]`:`${comp} ΔS(H)`,
+      color,
+      data:c.H.map((h,i)=>[h,c.dS[i]-base])
+    });
+  }
+  mk("Zn0.95","rgba(77,208,255,0.97)"); // blue
+  mk("Zn0.56","rgba(255,77,109,0.97)"); // red
+  plotSeries($("plotDS"),series,{
+    title:norm?"Field-induced entropy: ΔS(H) − ΔS(0)":"Entropy vs field: ΔS(H) = ∫ (C/T) dT",
+    xlabel:"Field μ₀H (T)",
+    ylabel:norm?"ΔS(H) − ΔS(0)":"ΔS (area under C/T)"
+  });
+  const leg=$("legendDS");leg.innerHTML="";
+  for(const it of series){
+    const div=document.createElement("div");
+    div.className="chip";
+    div.innerHTML=`<span class="sw" style="background:${it.color}"></span>${it.name}`;
+    leg.appendChild(div);
+  }
+}
+
+/************* exports / clears *************/
+function exportDerivedChi(){
+  if(!chiData.T.length){alert("No derived χ data to export.");return;}
+  const out=["# T_K, chi056, chi095, chi_imp, chi_kagome"];
+  for(let i=0;i<chiData.T.length;i++){
+    out.push([chiData.T[i],chiData.chi056[i],chiData.chi095[i],chiData.chiImp[i],chiData.chiKag[i]].join(", "));
+  }
+  downloadText("barlowite_derived_chi_neon.csv",out.join("\n"));
+}
+function exportCurves(){
+  const out=["# composition, H_T, DeltaS"];
+  for(const comp of ["Zn0.95","Zn0.56"]){
+    const c=dsCurves[comp];
+    if(!c)continue;
+    for(let i=0;i<c.H.length;i++){
+      out.push([comp,c.H[i],c.dS[i]].join(", "));
+    }
+  }
+  downloadText("barlowite_entropy_vs_field_neon.csv",out.join("\n"));
+}
+function clearCurves(){
+  dsCurves["Zn0.95"]=null;
+  dsCurves["Zn0.56"]=null;
+  $("blkN").textContent="0";
+  $("lastDs").textContent="—";
+  renderDSPlot();
+}
+
+/************* tabs + wiring *************/
+function setTab(name){
+  const tabs=["sus","cw","heat","notes"];
+  tabs.forEach(t=>{
+    $("tab-"+t).classList.toggle("hidden",t!==name);
+  });
+  document.querySelectorAll(".tabbtn").forEach(b=>{
+    b.classList.toggle("active",b.dataset.tab===name);
+  });
+  if(name==="sus")renderChiPlot();
+  if(name==="cw")renderCWPlot(cwFit.view==="inv");
+  if(name==="heat")renderDSPlot();
+}
+document.querySelectorAll(".tabbtn").forEach(b=>{
+  b.addEventListener("click",()=>setTab(b.dataset.tab));
+});
+
+$("btnSynth").addEventListener("click",()=>{loadSyntheticChi();computeChi();});
+$("btnComputeChi").addEventListener("click",()=>computeChi());
+$("btnClearChi").addEventListener("click",()=>{$("chiCsv").value="";chiData={rows:[],T:[],chi056:[],chi095:[],chiImp:[],chiKag:[]};$("chiRows").textContent="0";renderChiPlot();});
+$("btnExportChi").addEventListener("click",exportDerivedChi);
+
+$("paperMode").addEventListener("change",applyPaperMode);
+$("btnFitCW").addEventListener("click",fitCurieWeiss);
+$("btnPlotInv").addEventListener("click",()=>renderCWPlot(true));
+
+$("btnSynthMulti").addEventListener("click",()=>{loadSyntheticMulti();computeMulti();});
+$("btnComputeMulti").addEventListener("click",computeMulti);
+$("btnClearCurves").addEventListener("click",clearCurves);
+$("btnExportCurves").addEventListener("click",exportCurves);
+$("normToZero").addEventListener("change",renderDSPlot);
+
+/************* boot *************/
+loadSyntheticChi();
+computeChi();
+applyPaperMode();
+loadSyntheticMulti();
+renderDSPlot();
+</script>
+<script id="QDS_AUTOPATCH_EXEC_V1">
+(() => {
+  "use strict";
+
+  const QS = new URLSearchParams(location.search);
+
+  // --- Deep-link router (works even if qlab4 opens the "wrong" page) ---
+  // page=auto|main|digitizer
+  // autopaste=1 (focus CSV box)
+  // seed=123 (stored for any internal demo use)
+  const page = (QS.get("page") || "").toLowerCase();
+  const seed = QS.get("seed");
+  if (seed) window.__QDS_SEED = seed;
+
+  // NOTE: file names are hard-coded to the expected QDS pages.
+  // If your filenames differ, the bash finder above should still patch the right file,
+  // and these redirects are "best effort" (won't break anything if missing).
+  const AUTO = "qds_kagome_auto_seeker.html";
+  const MAIN = "qds_kagome_ground_state_lab_neon_v4.html";
+
+  const thisFile = (location.pathname.split("/").pop() || "").toLowerCase();
+
+  if (page === "auto" && thisFile !== AUTO.toLowerCase()) {
+    location.replace(AUTO + location.search.replace(/[?&]page=[^&]*/,"").replace(/^&/,"?"));
+    return;
+  }
+  if ((page === "main" || page === "digitizer") && thisFile !== MAIN.toLowerCase()) {
+    location.replace(MAIN + location.search.replace(/[?&]page=[^&]*/,"").replace(/^&/,"?"));
+    return;
+  }
+
+  // If digitizer is a tab inside MAIN, try a gentle nudge (won't crash if IDs differ)
+  function nudgeDigitizerTab() {
+    if (page !== "digitizer") return;
+    const tab = [...document.querySelectorAll("button, a, .tab, .pill")]
+      .find(el => /digitizer/i.test(el.textContent || ""));
+    if (tab) tab.click();
+  }
+
+  // --- Utility: clean + parse CSV with aggressive tolerance ---
+  function cleanAndCount(raw) {
+    const lines = String(raw || "").split(/\r?\n/);
+    const out = [];
+    let rej = 0;
+
+    const numOK = (x) => Number.isFinite(x);
+
+    for (let ln of lines) {
+      ln = (ln || "").trim();
+      if (!ln) continue;
+      if (ln.startsWith("#")) continue;
+
+      // normalize separators: tabs/semicolons -> commas, multi-space -> comma
+      ln = ln.replace(/[;\t]+/g, ",").replace(/\s+/g, ",");
+
+      // split on commas, keep first 3 numeric tokens
+      const toks = ln.split(",").map(s => s.trim()).filter(Boolean);
+      if (toks.length < 3) { rej += 1; continue; }
+
+      const a = Number(toks[0]);
+      const b = Number(toks[1]);
+      const c = Number(toks[2]);
+
+      if (!numOK(a) || !numOK(b) || !numOK(c)) { rej += 1; continue; }
+
+      out.push([a,b,c]);
+    }
+
+    // sort by T just in case
+    out.sort((p,q) => p[0]-q[0]);
+
+    const cleaned =
+      "# T, chi056, chi095 (cleaned)\n" +
+      out.map(r => r.map(v => String(v)).join(", ")).join("\n") +
+      (out.length ? "\n" : "");
+
+    return { cleaned, valid: out.length, rejected: rej };
+  }
+
+  function ensureStatusBox(textarea) {
+    let box = document.getElementById("qds_csv_status_box");
+    if (box) return box;
+
+    box = document.createElement("div");
+    box.id = "qds_csv_status_box";
+    box.style.marginTop = "10px";
+    box.style.padding = "10px 12px";
+    box.style.borderRadius = "14px";
+    box.style.border = "1px solid rgba(120,160,255,0.35)";
+    box.style.background = "rgba(0,0,0,0.25)";
+    box.style.fontSize = "13px";
+    box.style.lineHeight = "1.35";
+    box.style.userSelect = "text";
+    box.textContent = "CSV status: (waiting)";
+
+    textarea.insertAdjacentElement("afterend", box);
+    return box;
+  }
+
+  function findTextarea() {
+    // Prefer a textarea in the first card/section
+    const ta = document.querySelector("textarea");
+    return ta || null;
+  }
+
+  function findAutoSeekButton() {
+    const btns = [...document.querySelectorAll("button")];
+    return btns.find(b => /auto[- ]?seek/i.test(b.textContent || "")) || null;
+  }
+
+  function findMinPointsInput() {
+    // Heuristic: find a label-ish element containing the phrase then grab input nearby
+    const nodes = [...document.querySelectorAll("*")].filter(el => {
+      const t = (el.textContent || "").trim();
+      return t.length < 80 && /min points per window/i.test(t);
+    });
+
+    for (const n of nodes) {
+      // same container first
+      const inp1 = n.parentElement && n.parentElement.querySelector("input");
+      if (inp1 && inp1.type === "number") return inp1;
+
+      // next siblings
+      let p = n;
+      for (let i=0;i<4;i++){
+        p = p.nextElementSibling;
+        if (!p) break;
+        const inp2 = p.querySelector && p.querySelector("input");
+        if (inp2 && inp2.type === "number") return inp2;
+      }
+    }
+
+    // fallback: last numeric input often is minPoints
+    const nums = [...document.querySelectorAll('input[type="number"]')];
+    return nums.length ? nums[nums.length-1] : null;
+  }
+
+  function parseR2FromPage() {
+    // Look for a value that smells like R²
+    const all = [...document.querySelectorAll("*")];
+    let best = null;
+
+    for (const el of all) {
+      const t = (el.textContent || "").replace(/\s+/g," ").trim();
+      if (!t) continue;
+
+      // direct "0.9991" near R² label
+      if (/linearity score|r²|r2/i.test(t) && t.length < 60) {
+        // hunt in same card for a float
+        const card = el.closest("section, .card, .panel, div") || el.parentElement;
+        const floats = card ? (card.textContent || "").match(/\b0\.[0-9]{3,6}\b/g) : None
+        if (floats):
+          pass
+      }
+    }
+
+    // Simpler: scan for first float after a node mentioning R²
+    for (const el of all) {
+      const t = (el.textContent || "").replace(/\s+/g," ").trim();
+      if (/linearity score|r²|r2/i.test(t)) {
+        const card = el.closest("section, .card, .panel, div") || el.parentElement;
+        const hay = (card ? card.textContent : document.body.textContent) || "";
+        const m = hay.match(/\b0\.[0-9]{3,6}\b/);
+        if (m) return Number(m[0]);
+      }
+    }
+
+    // last-ditch: any decent-looking R² in page
+    const m2 = (document.body.textContent || "").match(/\b0\.[0-9]{3,6}\b/);
+    return m2 ? Number(m2[0]) : null;
+  }
+
+  function ensureBadge() {
+    let b = document.getElementById("qds_cw_badge");
+    if (b) return b;
+
+    b = document.createElement("div");
+    b.id = "qds_cw_badge";
+    b.style.display = "inline-block";
+    b.style.padding = "8px 12px";
+    b.style.borderRadius = "999px";
+    b.style.border = "1px solid rgba(255,255,255,0.18)";
+    b.style.background = "rgba(0,0,0,0.25)";
+    b.style.fontWeight = "700";
+    b.style.letterSpacing = "0.4px";
+    b.style.marginTop = "10px";
+    b.style.fontSize = "12px";
+    b.textContent = "CW: (pending)";
+
+    // Place near the results header if possible
+    const anchor =
+      [...document.querySelectorAll("*")].find(el => /recommended curie|curie[- ]?weiss window/i.test((el.textContent||"").toLowerCase()))
+      || document.body;
+
+    anchor.insertAdjacentElement("afterend", b);
+    return b;
+  }
+
+  function setBadge(r2) {
+    const b = ensureBadge();
+    if (!Number.isFinite(r2)) {
+      b.textContent = "CW: (no R²)";
+      b.style.opacity = "0.75";
+      return;
+    }
+    let label = "NOT CW";
+    if (r2 >= 0.98) label = "CW-CLEAN";
+    else if (r2 >= 0.95) label = "CROSSOVER";
+
+    b.textContent = ;
+
+    // style by category (no hard colors; just opacity + glow-ish border)
+    b.style.opacity = "1";
+    b.style.borderColor = (label === "CW-CLEAN") ? "rgba(140,255,200,0.55)"
+                      : (label === "CROSSOVER") ? "rgba(255,220,120,0.55)"
+                      : "rgba(255,120,120,0.55)";
+  }
+
+  function warnMuEffIfNotCW(r2) {
+    if (!Number.isFinite(r2) || r2 >= 0.95) return;
+    // Add a small note next to any μeff label/value we can find
+    const muNode = [...document.querySelectorAll("*")].find(el => /μeff|mu_eff|mu eff/i.test(el.textContent || ""));
+    if (!muNode) return;
+
+    let note = document.getElementById("qds_mueff_note");
+    if (note) return;
+
+    note = document.createElement("div");
+    note.id = "qds_mueff_note";
+    note.style.marginTop = "6px";
+    note.style.fontSize = "12px";
+    note.style.opacity = "0.85";
+    note.textContent = "NOTE: R² < 0.95 → μ_eff is not a safe headline number here.";
+
+    (muNode.closest("div") || muNode).appendChild(note);
+  }
+
+  function focusCSVIfAsked() {
+    if (QS.get("autopaste") !== "1") return;
+    const ta = findTextarea();
+    if (!ta) return;
+    setTimeout(() => {
+      ta.focus();
+      ta.scrollIntoView({behavior:"smooth", block:"center"});
+    }, 50);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    nudgeDigitizerTab();
+
+    const ta = findTextarea();
+    if (!ta) { focusCSVIfAsked(); return; }
+
+    const box = ensureStatusBox(ta);
+
+    const refreshStatus = () => {
+      const {valid, rejected} = cleanAndCount(ta.value);
+      box.textContent = ;
+    };
+
+    ta.addEventListener("input", refreshStatus);
+    refreshStatus();
+    focusCSVIfAsked();
+
+    // --- Executive-friendly auto-seek wrapper ---
+    const btn = findAutoSeekButton();
+    if (!btn) return;
+
+    btn.addEventListener("click", (ev) => {
+      if (window.__QDS_PATCH_SKIP_CLICK) return;
+
+      const {cleaned, valid, rejected} = cleanAndCount(ta.value);
+
+      if (valid < 3) {
+        // keep your existing alert logic; just update status
+        box.textContent = ;
+        return;
+      }
+
+      // overwrite textarea with cleaned, so your existing parser stops whining
+      ta.value = cleaned;
+      box.textContent = ;
+
+      // auto-adjust minPoints if paste is short
+      const minPts = findMinPointsInput();
+      if (minPts) {
+        const cur = Number(minPts.value);
+        if (Number.isFinite(cur) && valid < cur) {
+          const nv = Math.max(5, Math.floor(valid / 2));
+          minPts.value = String(nv);
+          box.textContent += ;
+        }
+      }
+
+      // Let original handler run once (no recursion)
+      window.__QDS_PATCH_SKIP_CLICK = true;
+      setTimeout(() => {
+        try { btn.click(); } finally { window.__QDS_PATCH_SKIP_CLICK = false; }
+      }, 0);
+
+      // Badge after the UI updates
+      setTimeout(() => {
+        const r2 = parseR2FromPage();
+        setBadge(r2);
+        warnMuEffIfNotCW(r2);
+      }, 120);
+
+      ev.preventDefault();
+      ev.stopPropagation();
+    }, true);
+  });
+
+})();
+</script>
+</body>
+</html>
