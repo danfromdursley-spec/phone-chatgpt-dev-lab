@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>QDS • Offline Tools — Pricing Menu</title>
+  <meta name="description" content="Offline-first quoting tools for installers. Professional pricing menu + scope guardrails." />
+  <style>
+    :root{
+      --bg:#070B12;
+      --panel:#0C1220;
+      --panel2:#0A1020;
+      --ink:#EAF1FF;
+      --muted:#A7B3CC;
+      --line:rgba(255,255,255,.10);
+      --glow:rgba(88,160,255,.25);
+      --good:#26D07C;
+      --warn:#FFB020;
+      --bad:#FF4D6D;
+      --accent:#58A0FF;
+      --accent2:#7C5CFF;
+      --shadow:0 18px 55px rgba(0,0,0,.55);
+      --radius:18px;
+      --radius2:26px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 700px at 10% -10%, rgba(88,160,255,.20), transparent 60%),
+        radial-gradient(900px 600px at 95% 0%, rgba(124,92,255,.16), transparent 65%),
+        radial-gradient(1100px 900px at 60% 120%, rgba(38,208,124,.10), transparent 60%),
+        var(--bg);
+      color:var(--ink);
+      font-family:var(--sans);
+      letter-spacing:.2px;
+    }
+    a{color:inherit}
+    .wrap{max-width:1180px;margin:0 auto;padding:22px 16px 60px}
+    .topbar{
+      display:flex;gap:12px;align-items:center;justify-content:space-between;
+      padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius2);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      box-shadow:var(--shadow);
+      position:sticky; top:10px; z-index:20;
+      backdrop-filter: blur(10px);
+    }
+    .brand{display:flex;gap:12px;align-items:center}
+    .badge{
+      width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+      background: radial-gradient(120% 120% at 20% 10%, rgba(88,160,255,.35), rgba(124,92,255,.20));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 0 0 6px rgba(88,160,255,.07);
+      font-weight:800;
+    }
+    .brand h1{font-size:14px;margin:0}
+    .brand .sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .right{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+    .pill{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+    }
+    .btn{
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      color:var(--ink);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:12px;
+      display:inline-flex;align-items:center;gap:8px;
+      transition:transform .08s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.20)}
+    .btn:active{transform:translateY(0px)}
+    .btn.primary{
+      background:linear-gradient(180deg, rgba(88,160,255,.22), rgba(88,160,255,.10));
+      border-color:rgba(88,160,255,.40);
+      box-shadow:0 0 0 5px rgba(88,160,255,.10);
+    }
+    .btn.ghost{background:transparent}
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+      margin-top:14px;
+    }
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} .topbar{position:static} }
+    .panel{
+      border:1px solid var(--line);
+      border-radius:var(--radius2);
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .hero h2{margin:0;font-size:26px;line-height:1.15}
+    .hero p{margin:10px 0 0;color:var(--muted);max-width:72ch}
+    .hero .kpis{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .kpi{
+      border:1px solid var(--line);border-radius:14px;padding:10px 12px;
+      background:rgba(0,0,0,.22);
+      min-width:180px;
+    }
+    .kpi .t{font-size:11px;color:var(--muted);font-family:var(--mono)}
+    .kpi .v{font-size:14px;margin-top:4px}
+    .sectionTitle{
+      display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+      margin:18px 0 10px;
+    }
+    .sectionTitle h3{margin:0;font-size:14px;letter-spacing:.6px;text-transform:uppercase;color:#CFE1FF}
+    .sectionTitle .hint{font-size:12px;color:var(--muted)}
+    .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    @media (max-width: 760px){ .cards{grid-template-columns:1fr} }
+    .card{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background:linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,.10));
+      padding:14px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(600px 220px at 0% 0%, rgba(88,160,255,.18), transparent 60%);
+      pointer-events:none;
+      opacity:.75;
+    }
+    .card .row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;position:relative}
+    .card h4{margin:0;font-size:16px}
+    .tag{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:6px 9px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .price{
+      font-size:22px;font-weight:800;margin-top:10px;position:relative
+    }
+    .subprice{font-size:12px;color:var(--muted);margin-top:4px;position:relative}
+    .list{margin:10px 0 0;padding-left:18px;color:var(--muted);position:relative}
+    .list li{margin:6px 0}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;position:relative}
+    .mini{
+      font-size:11px;
+      padding:8px 10px;border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);
+      color:var(--ink);
+      cursor:pointer;
+    }
+    .mini:hover{border-color:rgba(255,255,255,.22)}
+    .table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border-radius:var(--radius);
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+    }
+    .table th,.table td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+      font-size:12px;
+    }
+    .table th{
+      font-size:11px;
+      font-family:var(--mono);
+      color:#CFE1FF;
+      text-transform:uppercase;
+      letter-spacing:.6px;
+      background:rgba(255,255,255,.03);
+    }
+    .table tr:last-child td{border-bottom:none}
+    .muted{color:var(--muted)}
+    .callout{
+      border:1px solid rgba(88,160,255,.30);
+      background:linear-gradient(180deg, rgba(88,160,255,.12), rgba(88,160,255,.05));
+      border-radius:var(--radius2);
+      padding:14px;
+      box-shadow:0 0 0 5px rgba(88,160,255,.07);
+    }
+    .callout h4{margin:0 0 6px}
+    .callout p{margin:0;color:var(--muted)}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width: 760px){ .two{grid-template-columns:1fr} }
+    details{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background:rgba(0,0,0,.18);
+      padding:10px 12px;
+    }
+    summary{cursor:pointer;font-weight:700}
+    details p{margin:8px 0 0;color:var(--muted);font-size:12px}
+    .footer{
+      margin-top:16px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+      padding:10px 2px;
+    }
+    .ok{color:var(--good)}
+    .warn{color:var(--warn)}
+    .bad{color:var(--bad)}
+    .mono{font-family:var(--mono)}
+    .hideClient{display:block}
+    .client .hideClient{display:none !important}
+    .client .clientPolish{display:block}
+    .clientPolish{display:none}
+    .toast{
+      position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
+      padding:10px 12px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(10,16,32,.88);
+      color:var(--ink);
+      box-shadow:var(--shadow);
+      display:none;
+      z-index:50;
+      max-width:min(560px,92vw);
+      font-size:12px;
+    }
+    .rulebox{
+      border:1px dashed rgba(255,255,255,.18);
+      border-radius:var(--radius);
+      padding:12px;
+      background:rgba(0,0,0,.18);
+    }
+    .rulebox .title{font-weight:800;margin-bottom:6px}
+    .rulebox ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:12px}
+  
+/* PATCH: table overflow wrap */
+.tableWrap{
+  width:100%;
+  max-width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  border-radius: var(--radius, 18px);
+}
+.tableWrap > table{
+  min-width: 720px; /* prevents squish + keeps headers readable */
+}
+@media (max-width: 560px){
+  .tableWrap > table{ min-width: 640px; }
+}
+/* keep words from blowing layout */
+th, td{ word-break: break-word; }
+
+</style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="badge">QDS</div>
+        <div>
+          <h1>Offline Installer Tools • Pricing Menu</h1>
+          <div class="sub">One-page calculators → multi-page suites • Offline-first • Export packs • UK-ready</div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="pill" id="modePill">MODE: INTERNAL</div>
+        <button class="btn ghost" id="toggleModeBtn" title="Toggle internal/client mode">Toggle Mode</button>
+        <button class="btn" id="copyPageLinkBtn" title="Copy shareable link">Copy Link</button>
+        <button class="btn primary" id="exportJsonBtn" title="Export current pricing JSON">Export JSON</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel hero">
+        <h2>Pricing that scales with <span class="mono">depth</span>, not drama.</h2>
+        <p>
+          This menu prices <b>offline-first</b> single-page tools (like your MW/export-cap calculator) up to full
+          multi-page installer suites. Built to be fast on-site, consistent in-office, and easy to justify to customers.
+        </p>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="t">DELIVERY MODE</div>
+            <div class="v">Single-file HTML (offline-first)</div>
+          </div>
+          <div class="kpi">
+            <div class="t">DEFAULT SAFETY</div>
+            <div class="v"><span class="ok">No external calls</span> • Client-side logic</div>
+          </div>
+          <div class="kpi">
+            <div class="t">OUTPUTS</div>
+            <div class="v">Copy summary • Print • JSON/CSV packs</div>
+          </div>
+          <div class="kpi hideClient">
+            <div class="t">INTERNAL NOTE</div>
+            <div class="v"><span class="warn">Guardrails included</span> to kill scope creep</div>
+          </div>
+        </div>
+
+        <div class="sectionTitle" style="margin-top:18px">
+          <h3>Core packages</h3>
+          <div class="hint">Pick by “pages” + complexity. Add-ons bolt on cleanly.</div>
+        </div>
+
+        <div class="cards" id="cards"></div>
+
+        <div class="sectionTitle">
+          <h3>Add-ons</h3>
+          <div class="hint">Only pay for what you actually need.</div>
+        </div>
+
+        <div class="tableWrap"><table class="table" id="addonsTbl"></table></div>
+      </div>
+
+      <div class="panel">
+        <div class="callout">
+          <h4>Quick quoting script (internal)</h4>
+          <p class="hideClient">
+            If the buyer is vague, ask 6 questions: pages? offline-only? export pack? branding? tariff presets? support?
+            Then quote Tier + add-ons. No guessing, no free consulting.
+          </p>
+          <p class="clientPolish">
+            We scope quickly and ship clean: pick a package, choose optional add-ons, and you get a usable tool — fast.
+          </p>
+        </div>
+
+        <div class="sectionTitle">
+          <h3>Retainers & support</h3>
+          <div class="hint">Sensible monthly keeps tools current.</div>
+        </div>
+
+        <div class="tableWrap"><table class="table" id="supportTbl"></table></div>
+
+        <div class="sectionTitle">
+          <h3>Licensing</h3>
+          <div class="hint">Internal vs white-label.</div>
+        </div>
+
+        <div class="two">
+          <div class="rulebox">
+            <div class="title">Licence (default)</div>
+            <div class="muted" style="font-size:12px">
+              Buyer gets a licence to use the tool. Core engine stays yours.
+            </div>
+            <ul>
+              <li>Single company use (their team)</li>
+              <li>Updates via retainer (optional)</li>
+              <li class="hideClient">Stops “can you rebuild this for my mate?” leakage</li>
+            </ul>
+          </div>
+          <div class="rulebox">
+            <div class="title">Full buyout (premium)</div>
+            <div class="muted" style="font-size:12px">
+              Hand over source + rights. You lose future upside.
+            </div>
+            <ul>
+              <li>Price uplift: <b>×2.0 to ×3.0</b></li>
+              <li>Includes clean handover pack</li>
+              <li class="hideClient">Buyout = “no recurring revenue” tax</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sectionTitle">
+          <h3>Process</h3>
+          <div class="hint">How it ships without chaos.</div>
+        </div>
+
+        <div class="tableWrap"><table class="table" id="processTbl"></table></div>
+
+        <div class="sectionTitle">
+          <h3>Scope guardrails</h3>
+          <div class="hint">The anti-entropy system.</div>
+        </div>
+
+        <div class="rulebox">
+          <div class="title">Included</div>
+          <ul>
+            <li>2 revision rounds (bugfix + usability polish)</li>
+            <li>Mobile-fit + basic accessibility (labels, focus, contrast)</li>
+            <li>Offline-first delivery + “Export pack” if in scope</li>
+          </ul>
+        </div>
+        <div style="height:10px"></div>
+        <div class="rulebox">
+          <div class="title">Triggers (become paid add-ons)</div>
+          <ul>
+            <li>“Just add user accounts” = backend scope</li>
+            <li>“Can it auto-pull tariffs?” = external data + ongoing maintenance</li>
+            <li>“Make it a full quote generator” = product scope</li>
+            <li>“Integrate CRM” = integration scope</li>
+            <li class="hideClient">Anything that smells like a platform gets priced like a platform</li>
+          </ul>
+        </div>
+
+        <div class="sectionTitle">
+          <h3>FAQ</h3>
+          <div class="hint">Pre-answers to common asks.</div>
+        </div>
+
+        <details open>
+          <summary>Is this “NASA style” or “NASA price”?</summary>
+          <p>Style: yes. Price: no. We keep it sharp, fast, and offline-first — not a 6-month committee project.</p>
+        </details>
+        <div style="height:8px"></div>
+        <details>
+          <summary>Why offline-first?</summary>
+          <p>Because quotes happen in lofts, driveways, and rural dead zones. Also: privacy and speed.</p>
+        </details>
+        <div style="height:8px"></div>
+        <details>
+          <summary>Can we make it public later?</summary>
+          <p>Yes. This page already supports a Client mode that hides internal notes. You control what’s shown.</p>
+        </details>
+
+        <div class="footer">
+          <div>Build tag: <span class="mono" id="buildTag"></span></div>
+          <div class="hideClient">Internal mode shows ops notes. Client mode hides them.</div>
+          <div class="clientPolish">Prepared pricing menu for offline quoting tools.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+<script>
+(() => {
+  const qs = new URLSearchParams(location.search);
+  let mode = (qs.get("mode") || "internal").toLowerCase();
+  const isClient = mode === "client";
+
+  const PRICING = {
+    currency: "GBP",
+    updated: new Date().toISOString().slice(0,10),
+    packages: [
+      {
+        id:"tier1",
+        title:"Tier 1 — One-Pager Lite",
+        tag:"1 page • simple logic",
+        price:"£750–£1,500",
+        clientPrice:"From £1,200",
+        internalHours:"8–18 hours",
+        ideal:"Best for lead capture, quick sizing, basic value display.",
+        bullets:[
+          "Single-page calculator",
+          "Basic validation + clear outputs",
+          "Copy summary + Print",
+          "Mobile-fit layout"
+        ],
+        notIncluded:[
+          "Export pack (JSON/CSV)",
+          "Complex tariff modelling",
+          "Multiple modes / workflows"
+        ]
+      },
+      {
+        id:"tier2",
+        title:"Tier 2 — Pro Calculator",
+        tag:"1 page • moderate complexity",
+        price:"£2,500–£6,000",
+        clientPrice:"£4,900 fixed (typical)",
+        internalHours:"20–60 hours",
+        ideal:"Your MW/export-cap style tool: quote-speed weapon + guardrails.",
+        bullets:[
+          "Advanced logic + presets",
+          "Export pack (JSON/CSV) + copy board",
+          "Risk meter / honesty indicators",
+          "Installer-mode toggles"
+        ],
+        notIncluded:[
+          "User accounts / backend",
+          "Auto tariff pulling from APIs",
+          "CRM integration"
+        ]
+      },
+      {
+        id:"tier3",
+        title:"Tier 3 — Multi-Page Suite",
+        tag:"3–6 pages • workflows",
+        price:"£8,000–£20,000",
+        clientPrice:"From £12,000",
+        internalHours:"80–220 hours",
+        ideal:"Structured flow: intake → sizing → value → quote narrative → export pack.",
+        bullets:[
+          "Multi-page navigation + saved state",
+          "Scenario compare (A/B)",
+          "Printable report pack",
+          "PWA install (optional add-on)"
+        ],
+        notIncluded:[
+          "Backend CRM pipeline (add-on)",
+          "Multi-tenant admin portal (product)"
+        ]
+      },
+      {
+        id:"tier4",
+        title:"Tier 4 — Enterprise / White-Label",
+        tag:"franchise • multi-team",
+        price:"£20,000+",
+        clientPrice:"Quoted",
+        internalHours:"Varies",
+        ideal:"When it’s rolling out across regions, reps, or partners.",
+        bullets:[
+          "White-label theme + presets per team",
+          "Audit trail (if backend added)",
+          "Training pack + rollout support",
+          "Roadmap + quarterly tuning"
+        ],
+        notIncluded:[
+          "Anything not scoped. Enterprise = contract-first."
+        ]
+      }
+    ],
+    addons: [
+      { name:"Export pack (JSON/CSV + downloads)", fee:"£300–£900", note:"Makes the tool portable and office-friendly." },
+      { name:"Branding + theme pack (logo, palette, typography)", fee:"£250–£900", note:"Professional polish without redesign chaos." },
+      { name:"Tariff presets pack (flat/TOU/SEG), editable", fee:"£250–£1,250", note:"Keeps assumptions explicit and defensible." },
+      { name:"PWA install (home screen + offline cache)", fee:"£400–£1,200", note:"Feels like an app. Still offline-first." },
+      { name:"PDF report layout (print-perfect)", fee:"£500–£1,500", note:"Turns outputs into a customer-ready document." },
+      { name:"Scenario compare (A/B systems)", fee:"£600–£2,000", note:"Upsell tool: batteries, inverter sizes, tariffs." },
+      { name:"CRM handoff (email/webhook/export format)", fee:"£900–£3,500", note:"Integration scope. Needs spec + testing." },
+      { name:"Backend (accounts / storage / dashboards)", fee:"£5,000–£25,000+", note:"This is a different product lane." }
+    ],
+    support: [
+      { name:"Care Lite", fee:"£79–£149/mo", includes:"Minor fixes, small tweaks, priority email.", ideal:"Solo installer / small team." },
+      { name:"Care Pro", fee:"£149–£299/mo", includes:"Tariff updates, quarterly tune, small features.", ideal:"Growing team / multiple reps." },
+      { name:"Care Enterprise", fee:"£300–£1,000/mo", includes:"SLA, roadmap, rollout support.", ideal:"Franchise / regional partner." }
+    ],
+    process: [
+      { step:"1) Scope Sprint (30–60m)", detail:"Pick tier + add-ons. Confirm inputs/outputs. Define what ‘done’ means." },
+      { step:"2) Build (fast)", detail:"Ship a working beta early. Iterate with real installer feedback." },
+      { step:"3) Harden", detail:"Edge cases, mobile, export pack, print layout." },
+      { step:"4) Handover", detail:"Single-file delivery + quickstart. Optional support plan." }
+    ],
+    terms: {
+      payment: "50% upfront • 40% beta • 10% sign-off",
+      revisions: "Two revision rounds included",
+      licence: "Licence by default; buyout ×2–×3",
+      note_internal: "Anything that turns into a platform gets priced like a platform."
+    }
+  };
+
+  // Mode
+  const root = document.documentElement;
+  document.body.classList.toggle("client", isClient);
+  const modePill = document.getElementById("modePill");
+  modePill.textContent = isClient ? "MODE: CLIENT" : "MODE: INTERNAL";
+
+  // Build tag
+  document.getElementById("buildTag").textContent =
+    `qds_pricing_menu_v1 • ${PRICING.updated} • ${isClient ? "client" : "internal"}`;
+
+  // Render cards
+  const cards = document.getElementById("cards");
+  cards.innerHTML = PRICING.packages.map(p => {
+    const price = isClient ? p.clientPrice : p.price;
+    const hours = p.internalHours ? `<div class="subprice hideClient">Effort: <span class="mono">${p.internalHours}</span></div>` : "";
+    const notInc = (p.notIncluded && p.notIncluded.length)
+      ? `<ul class="list hideClient">${p.notIncluded.map(x=>`<li>Not included: ${escapeHtml(x)}</li>`).join("")}</ul>`
+      : "";
+    return `
+      <div class="card" data-id="${p.id}">
+        <div class="row">
+          <div>
+            <h4>${escapeHtml(p.title)}</h4>
+            <div class="subprice">${escapeHtml(p.tag)}</div>
+          </div>
+          <div class="tag">${escapeHtml(p.id.toUpperCase())}</div>
+        </div>
+        <div class="price">${escapeHtml(price)}</div>
+        ${hours}
+        <div class="subprice">${escapeHtml(p.ideal)}</div>
+        <ul class="list">
+          ${p.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join("")}
+        </ul>
+        ${notInc}
+        <div class="actions">
+          <button class="mini" data-act="copy" data-tier="${p.id}">Copy Quote</button>
+          <button class="mini" data-act="select" data-tier="${p.id}">Select Tier</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // Add-ons table
+  const addonsTbl = document.getElementById("addonsTbl");
+  addonsTbl.innerHTML = `
+    <tr>
+      <th>Add-on</th>
+      <th>Fee</th>
+      <th>What it does</th>
+    </tr>
+    ${PRICING.addons.map(a => `
+      <tr>
+        <td><b>${escapeHtml(a.name)}</b></td>
+        <td class="mono">${escapeHtml(a.fee)}</td>
+        <td class="muted">${escapeHtml(a.note)}</td>
+      </tr>
+    `).join("")}
+  `;
+
+  // Support table
+  const supportTbl = document.getElementById("supportTbl");
+  supportTbl.innerHTML = `
+    <tr>
+      <th>Plan</th>
+      <th>Fee</th>
+      <th>Includes</th>
+      <th>Best for</th>
+    </tr>
+    ${PRICING.support.map(s => `
+      <tr>
+        <td><b>${escapeHtml(s.name)}</b></td>
+        <td class="mono">${escapeHtml(s.fee)}</td>
+        <td class="muted">${escapeHtml(s.includes)}</td>
+        <td class="muted">${escapeHtml(s.ideal)}</td>
+      </tr>
+    `).join("")}
+  `;
+
+  // Process table
+  const processTbl = document.getElementById("processTbl");
+  processTbl.innerHTML = `
+    <tr>
+      <th>Step</th>
+      <th>What happens</th>
+    </tr>
+    ${PRICING.process.map(x => `
+      <tr>
+        <td class="mono"><b>${escapeHtml(x.step)}</b></td>
+        <td class="muted">${escapeHtml(x.detail)}</td>
+      </tr>
+    `).join("")}
+    <tr class="hideClient">
+      <td class="mono"><b>Terms</b></td>
+      <td class="muted">
+        <div>Payment: <span class="mono">${escapeHtml(PRICING.terms.payment)}</span></div>
+        <div>Revisions: <span class="mono">${escapeHtml(PRICING.terms.revisions)}</span></div>
+        <div>Licence: <span class="mono">${escapeHtml(PRICING.terms.licence)}</span></div>
+        <div class="warn">${escapeHtml(PRICING.terms.note_internal)}</div>
+      </td>
+    </tr>
+  `;
+
+  // Selected tier
+  let selectedTier = "tier2";
+  highlightSelected();
+
+  // Buttons
+  document.getElementById("toggleModeBtn").addEventListener("click", () => {
+    const newMode = isClient ? "internal" : "client";
+    const u = new URL(location.href);
+    u.searchParams.set("mode", newMode);
+    location.href = u.toString();
+  });
+
+  document.getElementById("copyPageLinkBtn").addEventListener("click", async () => {
+    const u = new URL(location.href);
+    // Copy client-friendly link by default
+    u.searchParams.set("mode", "client");
+    await copyText(u.toString());
+    toast("Copied link (client mode).");
+  });
+
+  document.getElementById("exportJsonBtn").addEventListener("click", () => {
+    const payload = {
+      meta:{ exportedAt:new Date().toISOString(), mode: (isClient ? "client" : "internal") },
+      selectedTier,
+      pricing: PRICING
+    };
+    download("qds_pricing_menu.json", JSON.stringify(payload,null,2), "application/json");
+    toast("Exported JSON.");
+  });
+
+  cards.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button");
+    if(!btn) return;
+    const act = btn.dataset.act;
+    const tier = btn.dataset.tier;
+    if(!act || !tier) return;
+
+    if(act === "select"){
+      selectedTier = tier;
+      highlightSelected();
+      toast(`Selected ${tier.toUpperCase()}.`);
+    }
+
+    if(act === "copy"){
+      const p = PRICING.packages.find(x => x.id === tier);
+      const price = isClient ? p.clientPrice : p.price;
+      const text = buildQuoteText(p, price, selectedTier === tier);
+      await copyText(text);
+      toast("Quote copied to clipboard.");
+    }
+  });
+
+  function highlightSelected(){
+    [...document.querySelectorAll(".card")].forEach(c => {
+      const on = c.dataset.id === selectedTier;
+      c.style.borderColor = on ? "rgba(88,160,255,.55)" : "rgba(255,255,255,.10)";
+      c.style.boxShadow = on ? "0 0 0 6px rgba(88,160,255,.10)" : "none";
+    });
+  }
+
+  function buildQuoteText(p, price){
+    const lines = [];
+    lines.push(`QDS • Offline Installer Tools — Quote`);
+    lines.push(`Selected: ${p.title}`);
+    lines.push(`Price: ${price}`);
+    if(!isClient && p.internalHours) lines.push(`Effort: ${p.internalHours}`);
+    lines.push(`Includes:`);
+    p.bullets.forEach(b => lines.push(`- ${b}`));
+    if(!isClient && p.notIncluded && p.notIncluded.length){
+      lines.push(`Not included:`);
+      p.notIncluded.forEach(n => lines.push(`- ${n}`));
+    }
+    lines.push(`Terms: ${PRICING.terms.payment} | ${PRICING.terms.revisions} | ${PRICING.terms.licence}`);
+    return lines.join("\n");
+  }
+
+  // Utilities
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[m]));
+  }
+  async function copyText(text){
+    try{
+      await navigator.clipboard.writeText(text);
+    }catch(err){
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position="fixed"; ta.style.opacity="0"; ta.style.left="-9999px";
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+  }
+  function download(name, data, mime){
+    const blob = new Blob([data], {type:mime||"text/plain"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 200);
+  }
+  const toastEl = document.getElementById("toast");
+  let toastT = null;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.style.display = "block";
+    clearTimeout(toastT);
+    toastT = setTimeout(()=> toastEl.style.display="none", 1800);
+  }
+
+  // Apply initial mode class
+  if(isClient) document.body.classList.add("client");
+})();
+</script>
+</body>
+</html>
