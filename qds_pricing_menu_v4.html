@@ -316,6 +316,35 @@
     transition: opacity .15s ease;
     z-index:9999;
   }
+
+/* PATCH: bounds + wrap guardrails (mobile) */
+:root{ --wrap-anywhere: anywhere; }
+*{ box-sizing:border-box; }
+html,body{ width:100%; overflow-x:hidden; }
+main,section,header,footer,article,div{ max-width:100%; }
+
+h1,h2,h3,h4,p,li,small,span,button{
+  max-width:100%;
+  overflow-wrap: var(--wrap-anywhere);
+  word-break: break-word;
+}
+a{ overflow-wrap: var(--wrap-anywhere); word-break: break-word; }
+
+/* flex rows that commonly overflow (title | price) */
+.row, .top, .head, .hdr, .line, .tier-head, .tier_row, .tierHead{
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+.row > *, .top > *, .head > *, .hdr > *, .line > *, .tier-head > *{
+  min-width: 0 !important;
+}
+
+/* price / pills */
+.price, .fee, .tag, .pill, .chip{
+  max-width:100%;
+  white-space: normal !important;
+}
+
 </style>
 </head>
 <body>
@@ -770,5 +799,6 @@
   setMode(mode);
 })();
 </script>
+
 </body>
 </html>
