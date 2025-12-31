@@ -18,3 +18,11 @@ QDS_Battery_Lab/
 QDS_BATTERY_LOGS/
 QDS_logs/
 news_rips/
+
+# --- local build clutter (keep repo clean) ---
+_os/
+nasa_rw3/
+NASA_RW3_*.csv
+*.BK_*
+*.bak_*
+
