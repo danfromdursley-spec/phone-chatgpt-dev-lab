@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>QDS • Offline Installer Tools • Pricing Menu (v3)</title>
+  <style>
+    :root{
+      --bg0:#060912; --bg1:#0b1024; --panel:#0c132b; --panel2:#0a1023;
+      --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.14);
+      --txt:rgba(255,255,255,.92); --mut:rgba(255,255,255,.66); --dim:rgba(255,255,255,.44);
+      --good:#39d98a; --warn:#ffd166; --bad:#ff4d6d; --acc:#6ea8ff; --acc2:#7ee3ff;
+      --r:22px; --r2:28px; --sh:0 18px 60px rgba(0,0,0,.55);
+      --pad:clamp(14px,2.6vw,22px);
+      --max:1100px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--txt);
+      background:
+        radial-gradient(1200px 900px at 20% -10%, rgba(110,168,255,.16), transparent 60%),
+        radial-gradient(900px 700px at 90% 10%, rgba(126,227,255,.12), transparent 62%),
+        radial-gradient(800px 600px at 60% 115%, rgba(57,217,138,.09), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+    a{ color:var(--acc2); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+    .wrap{ max-width:var(--max); margin:0 auto; padding: calc(var(--pad) + env(safe-area-inset-top)) var(--pad) calc(var(--pad) + env(safe-area-inset-bottom)); }
+    .topbar{
+      display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      margin: 6px 0 18px;
+    }
+    .brand{
+      display:flex; gap:14px; align-items:center;
+      min-width: 260px;
+    }
+    .logo{
+      width:52px; height:52px; border-radius:18px;
+      background: radial-gradient(circle at 30% 30%, rgba(126,227,255,.35), rgba(110,168,255,.18) 40%, rgba(0,0,0,0) 70%),
+                  linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      box-shadow: var(--sh);
+      display:grid; place-items:center;
+      font-weight:900;
+      letter-spacing:.08em;
+    }
+    .brand h1{
+      margin:0;
+      font-size: clamp(20px,3.6vw,30px);
+      line-height:1.05;
+      letter-spacing:.2px;
+    }
+    .brand p{ margin:6px 0 0; color:var(--mut); font-size: clamp(12px,2.3vw,14px); }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px; border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--line);
+      color: var(--mut);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .btnrow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    button,.btn{
+      appearance:none; border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      color: var(--txt);
+      padding: 12px 14px;
+      border-radius: 16px;
+      font-weight: 700;
+      letter-spacing: .2px;
+      cursor:pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      transition: transform .08s ease, border-color .12s ease, background .12s ease;
+    }
+    button:hover,.btn:hover{ transform: translateY(-1px); border-color: var(--line2); }
+    button:active,.btn:active{ transform: translateY(0px) scale(.99); }
+    button:focus-visible{ outline:2px solid rgba(126,227,255,.55); outline-offset:2px; }
+
+    .hero{
+      margin: 14px 0 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      box-shadow: var(--sh);
+      padding: calc(var(--pad) + 8px);
+    }
+    .heroGrid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 18px;
+      align-items:start;
+    }
+    @media (max-width: 860px){
+      .heroGrid{ grid-template-columns: 1fr; }
+      .btnrow{ justify-content:flex-start; }
+    }
+    .big{
+      font-size: clamp(26px, 4.8vw, 44px);
+      line-height: 1.04;
+      margin: 0 0 10px;
+      letter-spacing: -0.4px;
+    }
+    .lead{
+      margin: 0 0 14px;
+      color: var(--mut);
+      font-size: clamp(14px, 2.5vw, 16px);
+      line-height:1.55;
+    }
+    .chips{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    .chip{
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.14);
+      color: var(--mut);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .chip strong{ color: var(--txt); }
+    .status{
+      border:1px solid var(--line);
+      border-radius: var(--r);
+      padding: 14px;
+      background: rgba(0,0,0,.12);
+    }
+    .kvs{ display:grid; gap:10px; }
+    .kv{
+      display:flex; justify-content:space-between; gap:12px;
+      border-bottom: 1px dashed rgba(255,255,255,.10);
+      padding: 10px 2px;
+    }
+    .kv:last-child{ border-bottom:none; padding-bottom: 2px; }
+    .kv .k{ color: var(--mut); }
+    .kv .v{ font-family: var(--mono); color: var(--txt); text-align:right; }
+    .ok{ color: var(--good); font-weight:800; }
+    .warn{ color: var(--warn); font-weight:800; }
+    .bad{ color: var(--bad); font-weight:800; }
+
+    .section{ margin: 20px 0 10px; display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
+    .section h2{
+      margin:0;
+      font-size: clamp(18px, 2.8vw, 22px);
+      letter-spacing:.2px;
+    }
+    .section .sub{ margin:0; color: var(--mut); font-size: 13px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+    .card{
+      grid-column: span 6;
+      border:1px solid var(--line);
+      border-radius: var(--r2);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      box-shadow: var(--sh);
+      padding: var(--pad);
+      min-width: 0;
+    }
+    @media (max-width: 860px){
+      .card{ grid-column: span 12; }
+    }
+    .cardHeader{
+      display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom: 10px;
+    }
+    .tierName{
+      margin:0;
+      font-size: clamp(18px, 3.2vw, 24px);
+      line-height:1.1;
+    }
+    .tierMeta{
+      margin:6px 0 0;
+      color: var(--mut);
+      font-size: 12px;
+    }
+    .price{
+      text-align:right;
+      font-weight: 900;
+      font-size: clamp(18px, 3.2vw, 26px);
+      letter-spacing: .2px;
+      white-space:nowrap;
+    }
+    .price small{ display:block; font-size: 12px; color: var(--mut); font-weight:700; margin-top:4px; }
+    .bullets{ margin: 10px 0 0; padding-left: 18px; color: var(--mut); }
+    .bullets li{ margin: 8px 0; }
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; }
+    .primary{
+      border-color: rgba(126,227,255,.30);
+      background: linear-gradient(180deg, rgba(126,227,255,.20), rgba(255,255,255,.03));
+    }
+    .ghost{ background: rgba(0,0,0,.10); }
+    .tag{
+      display:inline-flex; align-items:center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--mut);
+      font-size: 12px;
+      background: rgba(0,0,0,.10);
+      white-space:nowrap;
+    }
+
+    .full{ grid-column: span 12; }
+    .panel{
+      border:1px solid var(--line);
+      border-radius: var(--r2);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow: var(--sh);
+      padding: var(--pad);
+      min-width: 0;
+    }
+    .quoteGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      align-items:start;
+    }
+    @media (max-width: 860px){ .quoteGrid{ grid-template-columns: 1fr; } }
+
+    .field{ display:grid; gap:8px; margin: 12px 0; }
+    label{ color: var(--mut); font-size: 12px; }
+    select, input[type="text"]{
+      width:100%;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.18);
+      color: var(--txt);
+      outline:none;
+      font-weight:700;
+    }
+    select:focus, input[type="text"]:focus{ border-color: rgba(126,227,255,.40); }
+    .addonList{
+      display:grid; gap:10px;
+    }
+    .addon{
+      display:flex; gap:12px; justify-content:space-between; align-items:flex-start;
+      border:1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px 12px;
+      background: rgba(0,0,0,.12);
+      min-width:0;
+    }
+    .addon .left{ min-width:0; }
+    .addon .title{ font-weight:900; margin:0; }
+    .addon .desc{ margin:6px 0 0; color: var(--mut); font-size: 12px; line-height:1.4; }
+    .addon .right{ text-align:right; font-family: var(--mono); color: var(--txt); white-space:nowrap; }
+    .addon input{ margin-right: 8px; transform: translateY(2px); }
+
+    .mini{
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--mut);
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .hr{ height:1px; background: rgba(255,255,255,.08); margin: 14px 0; border-radius:1px; }
+
+    details{
+      border:1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(0,0,0,.10);
+      padding: 12px 14px;
+      margin: 10px 0;
+    }
+    summary{ cursor:pointer; font-weight:900; }
+    details p{ color: var(--mut); margin: 10px 0 2px; line-height:1.5; }
+
+    .foot{
+      margin-top: 18px;
+      color: var(--dim);
+      font-size: 12px;
+      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      button,.btn{ transition:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">QDS</div>
+        <div>
+          <h1>Offline Installer Tools • Pricing Menu</h1>
+          <p>One-page calculators → multi-page suites • offline-first • export packs • UK-ready</p>
+        </div>
+      </div>
+
+      <div class="btnrow">
+        <span class="pill"><span style="opacity:.75">MODE:</span> <span id="modePill" class="pill" style="padding:6px 10px">CLIENT</span></span>
+        <button class="ghost" id="btnToggleMode">Toggle Mode</button>
+        <button class="ghost" id="btnCopyLink">Copy Link</button>
+        <button class="primary" id="btnExportJSON">Export JSON</button>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="heroGrid">
+        <div>
+          <h2 class="big">Pricing that scales with depth (and stays board-safe).</h2>
+          <p class="lead">
+            This menu prices <b>offline-first</b> tools from quick single-page calculators to full multi-page installer suites.
+            Everything is built to be explainable, auditable, and ready to justify in real meetings.
+          </p>
+          <div class="chips">
+            <div class="chip"><strong>Delivery:</strong> single-file HTML (offline-first)</div>
+            <div class="chip"><strong>Default safety:</strong> <span class="ok">No external calls</span></div>
+            <div class="chip"><strong>Outputs:</strong> copy summary • print • JSON/CSV packs</div>
+          </div>
+        </div>
+
+        <div class="status">
+          <div class="kvs">
+            <div class="kv"><div class="k">Build tag</div><div class="v">qds_pricing_menu_v3</div></div>
+            <div class="kv"><div class="k">Mode</div><div class="v" id="modeKV">CLIENT</div></div>
+            <div class="kv"><div class="k">Best use</div><div class="v">Quote speed + clarity</div></div>
+            <div class="kv"><div class="k">Default guardrail</div><div class="v"><span class="ok">Offline-first</span></div></div>
+          </div>
+          <div class="hr"></div>
+          <div class="mini" id="modeNote"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Core packages</h2>
+      <p class="sub">Pick a tier. Then add extras if needed. No “scope soup”.</p>
+    </div>
+
+    <div class="grid" id="tiers"></div>
+
+    <div class="section">
+      <h2>Quote builder</h2>
+      <p class="sub">Select tier + add-ons → auto total → copy/export.</p>
+    </div>
+
+    <div class="grid">
+      <div class="panel full">
+        <div class="quoteGrid">
+          <div>
+            <div class="field">
+              <label for="tierSelect">Tier</label>
+              <select id="tierSelect"></select>
+            </div>
+
+            <div class="field">
+              <label>Optional add-ons</label>
+              <div class="addonList" id="addons"></div>
+            </div>
+
+            <div class="actions">
+              <button class="primary" id="btnCopyQuote">Copy Quote</button>
+              <button class="ghost" id="btnPrint">Print</button>
+              <button class="ghost" id="btnReset">Reset</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="panel" style="background:rgba(0,0,0,.10); border-color:rgba(255,255,255,.10)">
+              <h3 style="margin:0 0 8px; font-size:18px">Quote summary</h3>
+              <div class="mini" id="quoteMeta"></div>
+              <div class="hr"></div>
+              <div id="quoteBody" style="white-space:pre-wrap; font-family:var(--mono); font-size:12.5px; line-height:1.5; color:rgba(255,255,255,.88)"></div>
+            </div>
+
+            <div class="hr"></div>
+
+            <details>
+              <summary>Scope guardrails</summary>
+              <p><b>Included:</b> 2 revision rounds (bugfix + usability polish), mobile-fit layout, offline-first delivery.</p>
+              <p><b>Triggers (become paid add-ons):</b> “Add user accounts” (backend), “Auto-pull tariffs” (external data + maintenance),
+                “Full quote generator” (product scope), “CRM integration” (integration scope).</p>
+            </details>
+
+            <details>
+              <summary>FAQ</summary>
+              <p><b>Is this “NASA style” or “NASA price”?</b> Style: yes. Price: no. We keep it sharp, fast, offline-first.</p>
+              <p><b>Why offline-first?</b> Because site cabins, council rooms, and workshops don’t always have perfect internet. And audits matter.</p>
+              <p><b>Can we make it public later?</b> Yes — switch to a public demo pack + optional PWA install + branded theme.</p>
+            </details>
+
+            <details>
+              <summary>Licensing (default)</summary>
+              <p>Buyer gets a licence to use the tool (single company / their team). Core engine stays yours. Ongoing updates optional via retainer.</p>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <div>© QDS • Offline-first pricing menu • v3 • no external calls</div>
+      <div class="mini" id="linkOut"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // ---------- Data ----------
+  const TIERS = [
+    {
+      id:"t1", name:"Tier 1 — One-Pager Lite",
+      meta:"1 page • simple logic",
+      clientPrice:"From £1,200",
+      internalPrice:{ kind:"from", min:1200 },
+      best:"Lead capture, quick sizing, basic value display.",
+      bullets:[
+        "Single-page calculator",
+        "Basic validation + clear outputs",
+        "Copy summary + Print",
+        "Mobile-fit layout"
+      ]
+    },
+    {
+      id:"t2", name:"Tier 2 — Pro Calculator",
+      meta:"1 page • moderate complexity",
+      clientPrice:"£4,900 fixed (typical)",
+      internalPrice:{ kind:"fixed", value:4900 },
+      best:"MW/export-cap style tool: quote-speed weapon + guardrails.",
+      bullets:[
+        "Advanced logic + presets",
+        "Export pack (JSON/CSV) + copy board",
+        "Risk meter / honesty indicators",
+        "Installer-mode toggles"
+      ]
+    },
+    {
+      id:"t3", name:"Tier 3 — Multi-Page Suite",
+      meta:"3–6 pages • workflows",
+      clientPrice:"From £12,000",
+      internalPrice:{ kind:"from", min:12000 },
+      best:"Structured flow: intake → sizing → value → narrative → export pack.",
+      bullets:[
+        "Multi-page workflow with navigation",
+        "Scenario compare (A/B) options",
+        "Hardened edge cases + mobile QA",
+        "Deliverable pack + versioning"
+      ]
+    },
+    {
+      id:"t4", name:"Tier 4 — Enterprise / White-Label",
+      meta:"franchise • multi-team",
+      clientPrice:"Quoted",
+      internalPrice:{ kind:"quoted" },
+      best:"Rollout across regions/teams with presets, training, and roadmap.",
+      bullets:[
+        "White-label theme + presets per team",
+        "Training pack + rollout support",
+        "Roadmap + quarterly tuning",
+        "Audit trail (if backend added)"
+      ]
+    }
+  ];
+
+  const ADDONS = [
+    { id:"a_export", name:"Export pack (JSON/CSV + downloads)", range:[300,900], what:"Portable + audit-friendly evidence packs." },
+    { id:"a_brand", name:"Branding + theme pack", range:[250,900], what:"Logo/palette/typography polish to match your company." },
+    { id:"a_tariffs", name:"Tariff presets pack (flat/TOU/SEG)", range:[250,1250], what:"Assumptions that stay defensible when questioned." },
+    { id:"a_pwa", name:"PWA install (home screen + offline cache)", range:[400,1200], what:"Feels like an app; survives bad connectivity." },
+    { id:"a_pdf", name:"PDF report layout (print-perfect)", range:[500,1500], what:"Customer-ready output; board/council-safe print." },
+    { id:"a_ab", name:"Scenario compare (A/B systems)", range:[600,2000], what:"Upsell tool: compare batteries/tariffs/exports clearly." },
+    { id:"a_crm", name:"CRM handoff (email/webhook/export format)", range:[900,3500], what:"Integration spec or export format for your pipeline." },
+    { id:"a_backend", name:"Backend (accounts/storage/dashboards)", range:[5000,25000], what:"If you want logins, dashboards, storage—this is a different product." }
+  ];
+
+  // ---------- Mode handling ----------
+  const qs = new URLSearchParams(location.search);
+  const MODE_KEY = "QDS_PRICING_MODE_V3";
+  let mode = (qs.get("mode") || localStorage.getItem(MODE_KEY) || "client").toLowerCase();
+  if(!["client","internal"].includes(mode)) mode="client";
+
+  function setMode(m){
+    mode = m;
+    localStorage.setItem(MODE_KEY, mode);
+    const pill = document.getElementById("modePill");
+    const kv = document.getElementById("modeKV");
+    const note = document.getElementById("modeNote");
+    pill.textContent = mode.toUpperCase();
+    kv.textContent = mode.toUpperCase();
+    note.textContent = (mode==="client")
+      ? "Client mode: clean prices + outcomes. Internal ranges hidden where useful."
+      : "Internal mode: shows price math + ranges (use for scoping + fast quoting).";
+    // update link-out
+    const base = location.origin + location.pathname;
+    const link = base + (mode==="client" ? "?mode=client" : "?mode=internal");
+    document.getElementById("linkOut").textContent = link;
+    renderTiers();
+    renderQuote();
+  }
+
+  // ---------- Helpers ----------
+  const fmtGBP = (n)=> "£" + Math.round(n).toLocaleString("en-GB");
+  const fmtRange = (a,b)=> `${fmtGBP(a)}–${fmtGBP(b)}`;
+  const nowISO = ()=> new Date().toISOString().replace("T"," ").replace(/\..*/,"");
+
+  function tierPriceDisplay(t){
+    if(mode==="client") return t.clientPrice;
+    const ip = t.internalPrice;
+    if(ip.kind==="fixed") return `${fmtGBP(ip.value)} fixed`;
+    if(ip.kind==="from") return `From ${fmtGBP(ip.min)}`;
+    return "Quoted";
+  }
+
+  function tierBaseValue(t){
+    const ip = t.internalPrice;
+    if(ip.kind==="fixed") return ip.value;
+    if(ip.kind==="from") return ip.min;
+    return null;
+  }
+
+  function addonDisplay(a){
+    if(mode==="client"){
+      // keep client clean but still useful
+      if(a.id==="a_backend") return "Quoted (product scope)";
+      return fmtRange(a.range[0], a.range[1]);
+    }
+    return fmtRange(a.range[0], a.range[1]);
+  }
+
+  function addonDefaultPick(a){
+    // reasonable defaults: none checked
+    return false;
+  }
+
+  // ---------- Render tiers ----------
+  const tiersEl = document.getElementById("tiers");
+  function renderTiers(){
+    tiersEl.innerHTML = "";
+    TIERS.forEach((t)=>{
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="cardHeader">
+          <div>
+            <h3 class="tierName">${t.name}</h3>
+            <div class="tierMeta">${t.meta}</div>
+            <div class="tierMeta" style="margin-top:10px;color:rgba(255,255,255,.74)">${t.best}</div>
+          </div>
+          <div class="price">${tierPriceDisplay(t)}<small>${mode==="client" ? "Typical scope" : "Pricing view"}</small></div>
+        </div>
+        <ul class="bullets">${t.bullets.map(x=>`<li>${x}</li>`).join("")}</ul>
+        <div class="actions">
+          <button class="primary" data-pick-tier="${t.id}">Select tier</button>
+          <button class="ghost" data-copy-tier="${t.id}">Copy quote</button>
+          <span class="tag">${t.id.toUpperCase()}</span>
+        </div>
+      `;
+      tiersEl.appendChild(card);
+    });
+
+    // wire buttons
+    tiersEl.querySelectorAll("[data-pick-tier]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const id = btn.getAttribute("data-pick-tier");
+        document.getElementById("tierSelect").value = id;
+        renderQuote();
+        window.scrollTo({ top: document.getElementById("tierSelect").getBoundingClientRect().top + window.scrollY - 16, behavior:"smooth" });
+      });
+    });
+    tiersEl.querySelectorAll("[data-copy-tier]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const id = btn.getAttribute("data-copy-tier");
+        document.getElementById("tierSelect").value = id;
+        renderQuote();
+        copyQuote();
+      });
+    });
+  }
+
+  // ---------- Quote builder ----------
+  const tierSelect = document.getElementById("tierSelect");
+  const addonsEl = document.getElementById("addons");
+
+  function renderTierSelect(){
+    tierSelect.innerHTML = TIERS.map(t=>`<option value="${t.id}">${t.name}</option>`).join("");
+    if(!tierSelect.value) tierSelect.value = "t2";
+  }
+
+  function renderAddons(){
+    addonsEl.innerHTML = "";
+    ADDONS.forEach(a=>{
+      const div = document.createElement("div");
+      div.className = "addon";
+      div.innerHTML = `
+        <div class="left">
+          <label style="display:flex; gap:8px; align-items:flex-start; cursor:pointer; margin:0;">
+            <input type="checkbox" data-addon="${a.id}" ${addonDefaultPick(a) ? "checked" : ""} />
+            <div>
+              <div class="title">${a.name}</div>
+              <div class="desc">${a.what}</div>
+            </div>
+          </label>
+        </div>
+        <div class="right">${addonDisplay(a)}</div>
+      `;
+      addonsEl.appendChild(div);
+    });
+
+    addonsEl.querySelectorAll("input[type=checkbox]").forEach(chk=>{
+      chk.addEventListener("change", renderQuote);
+    });
+  }
+
+  function selectedTier(){
+    return TIERS.find(t=>t.id===tierSelect.value) || TIERS[0];
+  }
+
+  function selectedAddons(){
+    const picks = new Set([...addonsEl.querySelectorAll("input[type=checkbox]:checked")].map(x=>x.getAttribute("data-addon")));
+    return ADDONS.filter(a=>picks.has(a.id));
+  }
+
+  function estimateAddonTotal(adds){
+    // internal: use midpoint; client: we still calculate but display cautiously
+    let low=0, high=0;
+    adds.forEach(a=>{
+      if(a.id==="a_backend"){ /* quoted */ return; }
+      low += a.range[0];
+      high += a.range[1];
+    });
+    return { low, high, mid: (low+high)/2 };
+  }
+
+  function renderQuote(){
+    const t = selectedTier();
+    const adds = selectedAddons();
+    const base = tierBaseValue(t);
+    const addonTot = estimateAddonTotal(adds);
+
+    const meta = [];
+    meta.push(`Mode: ${mode.toUpperCase()}`);
+    meta.push(`Timestamp: ${nowISO()}`);
+    meta.push(`Tier: ${t.name} (${tierPriceDisplay(t)})`);
+    document.getElementById("quoteMeta").textContent = meta.join(" • ");
+
+    let lines = [];
+    lines.push(`QDS • OFFLINE-FIRST TOOL QUOTE`);
+    lines.push(`Tier: ${t.name}`);
+    lines.push(`Scope: ${t.best}`);
+    lines.push(``);
+    lines.push(`Includes:`);
+    t.bullets.forEach(b=>lines.push(`- ${b}`));
+
+    if(adds.length){
+      lines.push(``);
+      lines.push(`Add-ons:`);
+      adds.forEach(a=>{
+        lines.push(`- ${a.name} (${addonDisplay(a)})`);
+      });
+    }else{
+      lines.push(``);
+      lines.push(`Add-ons: none`);
+    }
+
+    lines.push(``);
+    lines.push(`Commercials:`);
+
+    if(mode==="client"){
+      // keep it confident but not overly numeric if tier is "from"/"quoted"
+      lines.push(`- Base: ${tierPriceDisplay(t)}`);
+      if(adds.length){
+        if(adds.some(a=>a.id==="a_backend")){
+          lines.push(`- Add-ons: varies (one item is quoted as product scope)`);
+        } else {
+          lines.push(`- Add-ons: ${fmtRange(addonTot.low, addonTot.high)} (depending on scope)`);
+        }
+      }
+      lines.push(`- Next step: 30–60m scope sprint → ship a working beta fast.`);
+    } else {
+      // internal: show math
+      if(base!=null) lines.push(`- Base (budget): ${fmtGBP(base)}`);
+      else lines.push(`- Base: quoted`);
+      if(adds.some(a=>a.id==="a_backend")){
+        lines.push(`- Add-ons (est.): ${fmtRange(addonTot.low, addonTot.high)} + backend quoted`);
+      } else {
+        lines.push(`- Add-ons (est.): ${fmtRange(addonTot.low, addonTot.high)} (mid ${fmtGBP(addonTot.mid)})`);
+      }
+      if(base!=null){
+        const totalLow = base + addonTot.low;
+        const totalHigh = base + addonTot.high;
+        lines.push(`- Total (est.): ${fmtRange(totalLow, totalHigh)}`);
+      }
+      lines.push(`- Included: 2 revision rounds + mobile QA + offline-first delivery.`);
+    }
+
+    document.getElementById("quoteBody").textContent = lines.join("\n");
+  }
+
+  async function copyText(txt){
+    try{
+      await navigator.clipboard.writeText(txt);
+      toast("Copied ✅");
+    }catch(e){
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = txt;
+      ta.style.position="fixed"; ta.style.left="-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      toast("Copied ✅");
+    }
+  }
+
+  function copyQuote(){
+    const txt = document.getElementById("quoteBody").textContent;
+    copyText(txt);
+  }
+
+  function exportJSON(){
+    const t = selectedTier();
+    const adds = selectedAddons();
+    const payload = {
+      build:"qds_pricing_menu_v3",
+      mode,
+      timestamp: new Date().toISOString(),
+      tier: t,
+      addons: adds,
+      link: (location.origin + location.pathname + (mode==="client" ? "?mode=client" : "?mode=internal")),
+      quote: document.getElementById("quoteBody").textContent
+    };
+    const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `qds_pricing_quote_${mode}_${Date.now()}.json`;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 800);
+    toast("Exported JSON ✅");
+  }
+
+  function copyLink(){
+    const base = location.origin + location.pathname;
+    const link = base + (mode==="client" ? "?mode=client" : "?mode=internal");
+    copyText(link);
+  }
+
+  // tiny toast
+  let toastT=null;
+  function toast(msg){
+    clearTimeout(toastT);
+    let el = document.getElementById("toast");
+    if(!el){
+      el = document.createElement("div");
+      el.id="toast";
+      el.style.position="fixed";
+      el.style.left="50%";
+      el.style.bottom="18px";
+      el.style.transform="translateX(-50%)";
+      el.style.padding="10px 14px";
+      el.style.border="1px solid rgba(255,255,255,.14)";
+      el.style.borderRadius="14px";
+      el.style.background="rgba(0,0,0,.70)";
+      el.style.color="rgba(255,255,255,.92)";
+      el.style.fontWeight="800";
+      el.style.boxShadow="0 16px 50px rgba(0,0,0,.6)";
+      el.style.zIndex="9999";
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.style.opacity="1";
+    toastT = setTimeout(()=>{ el.style.opacity="0"; }, 1100);
+  }
+
+  // ---------- Wire UI ----------
+  document.getElementById("btnToggleMode").addEventListener("click", ()=>{
+    const next = (mode==="client") ? "internal" : "client";
+    // keep URL clean but reflect mode
+    const base = location.origin + location.pathname;
+    history.replaceState(null,"", base + "?mode=" + next);
+    setMode(next);
+  });
+  document.getElementById("btnCopyLink").addEventListener("click", copyLink);
+  document.getElementById("btnExportJSON").addEventListener("click", exportJSON);
+  document.getElementById("btnCopyQuote").addEventListener("click", copyQuote);
+  document.getElementById("btnPrint").addEventListener("click", ()=>window.print());
+  document.getElementById("btnReset").addEventListener("click", ()=>{
+    // uncheck add-ons and reset tier to t2
+    tierSelect.value="t2";
+    addonsEl.querySelectorAll("input[type=checkbox]").forEach(x=>x.checked=false);
+    renderQuote();
+    toast("Reset ✅");
+  });
+  tierSelect.addEventListener("change", renderQuote);
+
+  // ---------- Init ----------
+  renderTierSelect();
+  renderAddons();
+  setMode(mode);
+})();
+</script>
+</body>
+</html>
