@@ -26,3 +26,20 @@ NASA_RW3_*.csv
 *.BK_*
 *.bak_*
 
+
+# QDS local build clutter / scratch
+*.BAK*
+*.bak*
+*_BK_*
+*ROLLBACK*
+*OLD*
+*_trash_*
+
+# local scripts / one-offs
+push_*.sh
+patch_*.sh
+make_*.py
+
+# local labs not yet curated
+qds_*_lab*.html
+*_demo*.html
