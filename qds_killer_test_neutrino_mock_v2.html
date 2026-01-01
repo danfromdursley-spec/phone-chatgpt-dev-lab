@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>QDS Killer Test — Cross-Beam Fingerprint vs L/E (Mock Lab v2)</title>
+<style>
+  :root{
+    --bg0:#05060a; --bg1:#0b1020;
+    --card:rgba(255,255,255,.06);
+    --line:rgba(255,255,255,.14);
+    --txt:rgba(255,255,255,.86);
+    --mut:rgba(255,255,255,.62);
+    --good:#7CFFB2; --warn:#FFD166; --bad:#FF5C5C;
+
+    --r:18px;
+    --shadow: 0 12px 26px rgba(0,0,0,.38);
+
+    /* no pink: red → orange → yellow → blue → green */
+    --cR: rgba(255,107,107,.95);
+    --cO: rgba(255,165,72,.95);
+    --cY: rgba(255,209,102,.95);
+    --cB: rgba(77,150,255,.95);
+    --cG: rgba(124,255,178,.95);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    color:var(--txt);
+    background:
+      radial-gradient(1200px 800px at 20% -10%, rgba(77,150,255,.18), transparent 55%),
+      radial-gradient(900px 700px at 110% 20%, rgba(255,209,102,.14), transparent 60%),
+      linear-gradient(180deg,var(--bg0),var(--bg1));
+    min-height:100vh;
+  }
+  header{padding:16px 14px 6px}
+  h1{margin:0; font-size:18px; letter-spacing:.2px}
+  .sub{margin-top:6px; color:var(--mut); font-size:12px; line-height:1.35}
+  .wrap{padding:10px 12px 22px; max-width:1200px; margin:0 auto}
+  .grid{display:grid; gap:10px; grid-template-columns: 1.05fr .95fr}
+  @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
+  .hd{padding:12px; border-bottom:1px solid var(--line); display:flex; gap:10px; align-items:center; justify-content:space-between}
+  .hd b{font-size:13px}
+  .bd{padding:12px}
+
+  .row{display:flex; gap:10px; flex-wrap:wrap}
+  .col{flex:1 1 170px; min-width:170px}
+  label{font-size:12px; color:var(--mut); display:block; margin-bottom:6px}
+  input, select, textarea{
+    width:100%; border-radius:12px; border:1px solid var(--line);
+    background:rgba(0,0,0,.25); color:var(--txt);
+    padding:10px; outline:none;
+  }
+  textarea{min-height:92px; resize:vertical}
+
+  .btns{display:flex; gap:10px; flex-wrap:wrap}
+  button{
+    border:1px solid rgba(255,255,255,.18);
+    background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+    color:var(--txt); padding:10px 12px; border-radius:14px;
+    cursor:pointer; font-weight:800; letter-spacing:.15px;
+  }
+  button:hover{filter:brightness(1.05)}
+  .pill{font-size:11px; padding:6px 10px; border-radius:999px; border:1px solid var(--line); color:var(--mut)}
+  .ok{color:var(--good); border-color:rgba(124,255,178,.35)}
+  .warn{color:var(--warn); border-color:rgba(255,209,102,.35)}
+  .bad{color:var(--bad); border-color:rgba(255,92,92,.35)}
+
+  .kpi{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px}
+  @media (max-width:560px){ .kpi{grid-template-columns:1fr} }
+
+  .k{padding:10px; border-radius:14px; border:1px solid var(--line); background:rgba(0,0,0,.18)}
+  .k .t{font-size:11px; color:var(--mut)}
+  .k .v{font-size:15px; font-weight:900; margin-top:4px}
+  .tiny{font-size:11px; color:var(--mut); line-height:1.35}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:11px; color:rgba(255,255,255,.78); white-space:pre-wrap}
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  @media (max-width:880px){ .split{grid-template-columns:1fr} }
+
+  canvas{width:100%; height:240px; background:rgba(0,0,0,.22); border:1px solid var(--line); border-radius:16px}
+  .bar{height:9px; border-radius:999px; background:rgba(255,255,255,.10); overflow:hidden; border:1px solid rgba(255,255,255,.12); margin-top:8px}
+  .bar > i{display:block; height:100%; width:0%}
+  /* warm spectrum bars (no pink) */
+  #bE  { background: linear-gradient(90deg, var(--cR), var(--cY)); }
+  #bLE { background: linear-gradient(90deg, var(--cY), var(--cB)); }
+  #bAIC{ background: linear-gradient(90deg, var(--cB), var(--cG)); }
+  #bP  { background: linear-gradient(90deg, var(--cO), var(--cY)); }
+
+  .hr{height:1px; background:var(--line); margin:10px 0}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <h1>QDS Killer Test — Cross-Beam Fingerprint vs L/E (Mock Lab v2)</h1>
+  <div class="sub">
+    Offline, deterministic falsifier harness: generate two beams, inject either shared <b>E-fingerprint</b> (kernel/systematics) or shared <b>L/E oscillation</b>,
+    then run a model face-off (Kernel vs Osc) with AIC/BIC, permutation p-values, mix detection, and a stress-sweep confusion matrix.
+  </div>
+</header>
+
+<div class="wrap grid">
+  <section class="card">
+    <div class="hd">
+      <b>Controls & Protocol</b>
+      <span class="pill" id="statusPill">IDLE</span>
+    </div>
+    <div class="bd">
+
+      <div class="row">
+        <div class="col">
+          <label>Scenario</label>
+          <select id="scenario">
+            <option value="auto">Auto (hidden truth)</option>
+            <option value="kernel">Kernel/Systematics (shared E fingerprint)</option>
+            <option value="osc">Oscillation (shared L/E curve)</option>
+            <option value="mix">Mixed (both)</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>Seed (deterministic)</label>
+          <input id="seed" value="777"/>
+        </div>
+        <div class="col">
+          <label>Events per beam</label>
+          <input id="n" type="number" min="200" max="30000" value="2200"/>
+        </div>
+        <div class="col">
+          <label>Noise σ</label>
+          <input id="noise" type="number" step="0.01" min="0" max="0.6" value="0.08"/>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div class="col">
+          <label>Fingerprint strength (kernel)</label>
+          <input id="kstr" type="number" step="0.01" min="0" max="0.8" value="0.22"/>
+        </div>
+        <div class="col">
+          <label>Osc amplitude</label>
+          <input id="astr" type="number" step="0.01" min="0" max="0.8" value="0.18"/>
+        </div>
+        <div class="col">
+          <label>Osc Δm² (arb.)</label>
+          <input id="dm2" type="number" step="0.05" min="0.2" max="8" value="1.8"/>
+        </div>
+        <div class="col">
+          <label>Baselines (L1, L2)</label>
+          <input id="Ls" value="0.55, 0.85"/>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div class="col">
+          <label>Permutation trials (p-values)</label>
+          <input id="perms" type="number" min="50" max="3000" value="250"/>
+        </div>
+        <div class="col">
+          <label>Sweep runs (confusion matrix)</label>
+          <input id="sweepN" type="number" min="10" max="400" value="80"/>
+        </div>
+        <div class="col">
+          <label>Auto truth mix (K/O/M)</label>
+          <input id="mixw" value="0.44, 0.44, 0.12"/>
+        </div>
+        <div class="col">
+          <label>Strictness (falsifier gate)</label>
+          <select id="strict">
+            <option value="balanced" selected>Balanced</option>
+            <option value="strict">Strict (more inconclusive)</option>
+            <option value="loose">Loose (more calls)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btns" style="margin-top:12px">
+        <button id="run">▶ Run Protocol (Face-off)</button>
+        <button id="perm">🧪 Permutation Test</button>
+        <button id="sweep">📈 Stress Sweep</button>
+        <button id="export">⬇ Export JSON</button>
+        <button id="copyStamp">📌 Copy Evidence Stamp</button>
+      </div>
+
+      <div class="kpi" style="margin-top:12px">
+        <div class="k">
+          <div class="t">E-space residual correlation (beam1↔beam2)</div>
+          <div class="v" id="Erc">—</div>
+          <div class="bar"><i id="bE"></i></div>
+          <div class="tiny">High ⇒ shared fingerprint (kernel/systematics)</div>
+        </div>
+        <div class="k">
+          <div class="t">L/E-space residual correlation</div>
+          <div class="v" id="LErc">—</div>
+          <div class="bar"><i id="bLE"></i></div>
+          <div class="tiny">High ⇒ shared L/E structure (oscillation-lean)</div>
+        </div>
+        <div class="k">
+          <div class="t">Model face-off (ΔAIC = AIC(osc)−AIC(kernel))</div>
+          <div class="v" id="dAIC">—</div>
+          <div class="bar"><i id="bAIC"></i></div>
+          <div class="tiny">Positive ⇒ kernel wins; negative ⇒ oscillation wins</div>
+        </div>
+        <div class="k">
+          <div class="t">Permutation p-values (E-corr, L/E-corr)</div>
+          <div class="v" id="pvals">—</div>
+          <div class="bar"><i id="bP"></i></div>
+          <div class="tiny">Small p ⇒ correlation unlikely under shuffle-null</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="k">
+        <div class="t">Classifier verdict (with mix detection)</div>
+        <div class="v" id="verdict">—</div>
+        <div class="tiny" id="note">Run Protocol to generate data + face-off. Permutation is optional but recommended.</div>
+      </div>
+
+      <div style="margin-top:10px" class="tiny">
+        <b>Explicit killer logic:</b> Kernel/systematics ⇒ cross-beam residual <b>shape match in E-bins</b> remains stable.
+        Real oscillation ⇒ best shared curve in <b>L/E</b> explains both beams, and the residual correlation in L/E lifts.
+        v2 adds AIC/BIC face-off so you can’t win by “model flexibility cosplay”.
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="hd">
+      <b>Plots, Sweep & Provenance</b>
+      <span class="pill" id="truthPill">Truth: —</span>
+    </div>
+    <div class="bd">
+
+      <div class="split">
+        <div>
+          <label>Residual shape vs Energy (binned)</label>
+          <canvas id="cvE"></canvas>
+        </div>
+        <div>
+          <label>Residual shape vs L/E (binned)</label>
+          <canvas id="cvLE"></canvas>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div class="col">
+          <label>Stress Sweep Summary</label>
+          <div class="mono" id="sweepOut">(run Stress Sweep)</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div class="col">
+          <label>News Provenance / Citation DNA</label>
+          <textarea id="prov" placeholder="Source title | URL | timestamp (UTC/local)&#10;Optional notes"></textarea>
+          <div class="tiny">This gets hashed into your Evidence Stamp and included in the export artifact.</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <div class="col">
+          <label>Evidence Stamp</label>
+          <div class="mono" id="stamp">mocklab.v2 | (run to generate)</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <div class="col">
+          <label>Run Log</label>
+          <div class="mono" id="log">(idle)</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  // ===== Helpers / deterministic RNG =====
+  function mulberry32(a){ return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };}
+
+  function hash32(str){
+    // FNV-1a 32-bit
+    let h = 0x811c9dc5;
+    for (let i=0;i<str.length;i++){
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return ("00000000"+h.toString(16)).slice(-8);
+  }
+
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+  const mean=a=>a.reduce((s,x)=>s+x,0)/a.length;
+
+  function corr(a,b){
+    const ma=mean(a), mb=mean(b);
+    let num=0, da=0, db=0;
+    for(let i=0;i<a.length;i++){
+      const xa=a[i]-ma, xb=b[i]-mb;
+      num += xa*xb; da += xa*xa; db += xb*xb;
+    }
+    return (da>0 && db>0) ? num/Math.sqrt(da*db) : 0;
+  }
+
+  function linspace(a,b,n){
+    const out=[]; for(let i=0;i<n;i++) out.push(a+(b-a)*(i/(n-1)));
+    return out;
+  }
+
+  function binMeans(x,y,edges){
+    const m = edges.length-1;
+    const sum=new Array(m).fill(0), cnt=new Array(m).fill(0);
+    for(let i=0;i<x.length;i++){
+      const xi=x[i], yi=y[i];
+      let k=-1;
+      for(let j=0;j<m;j++){ if(xi>=edges[j] && xi<edges[j+1]){ k=j; break; } }
+      if(k>=0){ sum[k]+=yi; cnt[k]+=1; }
+    }
+    return sum.map((s,j)=>cnt[j]>0 ? s/cnt[j] : 0);
+  }
+
+  function shuffleInPlace(arr, rng){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(rng()*(i+1));
+      const t=arr[i]; arr[i]=arr[j]; arr[j]=t;
+    }
+  }
+
+  // ===== Synthetic generator =====
+  function baseline(E){ return 0.06 + 0.02*Math.sin(2.0*E); }
+
+  function fingerprintE(E){
+    const g1 = Math.exp(-Math.pow((E-0.55)/0.18,2));
+    const g2 = 0.7*Math.exp(-Math.pow((E-1.55)/0.28,2));
+    const wig = 0.25*Math.sin(7.0*E) + 0.18*Math.sin(13.0*E+0.8);
+    return (g1 + g2 + wig);
+  }
+
+  function oscLE(L,E,dm2,amp){
+    const k = 2.2; // mock scaling constant
+    const x = k*dm2*L/Math.max(0.08,E);
+    const s = Math.sin(x);
+    return amp*(s*s);
+  }
+
+  function genBeam(rng, L, n, noise, kstr, astr, dm2, truth){
+    const E=new Array(n), y=new Array(n);
+    for(let i=0;i<n;i++){
+      const u=rng();
+      const Ei = 0.2 + 2.6*Math.pow(u, 1.8); // [0.2,2.8]
+      E[i]=Ei;
+      const kterm = (truth==="kernel"||truth==="mix") ? kstr*fingerprintE(Ei) : 0;
+      const oterm = (truth==="osc"||truth==="mix") ? oscLE(L,Ei,dm2,astr) : 0;
+      const eps = (rng()*2-1)*noise;
+      y[i]=clamp(baseline(Ei)+kterm+oterm+eps, 0, 0.85);
+    }
+    return {L,E,y};
+  }
+
+  // ===== Analysis: residuals + correlations =====
+  function residuals(beam){
+    const r=new Array(beam.E.length);
+    for(let i=0;i<r.length;i++) r[i]=beam.y[i]-baseline(beam.E[i]);
+    return r;
+  }
+
+  function corrScores(beam1, beam2){
+    const r1=residuals(beam1), r2=residuals(beam2);
+
+    const edgesE = linspace(0.2, 2.8, 16);
+    const m1E = binMeans(beam1.E, r1, edgesE);
+    const m2E = binMeans(beam2.E, r2, edgesE);
+    const cE = corr(m1E, m2E);
+
+    const x1 = beam1.E.map(E=> beam1.L/Math.max(0.08,E));
+    const x2 = beam2.E.map(E=> beam2.L/Math.max(0.08,E));
+    const edgesX = linspace(0.15, 4.0, 16);
+    const m1X = binMeans(x1, r1, edgesX);
+    const m2X = binMeans(x2, r2, edgesX);
+    const cLE = corr(m1X, m2X);
+
+    return {cE,cLE, edgesE, m1E,m2E, edgesX, m1X,m2X};
+  }
+
+  // ===== Model fitting: Kernel vs Osc (face-off) =====
+  function fitKernelSharedAmp(beam1, beam2){
+    // Fit y = baseline(E) + a*f(E)  (shared a across both beams)
+    // Least squares: a = sum(f*r)/sum(f^2)
+    let num=0, den=0, sse=0;
+    for(const b of [beam1,beam2]){
+      for(let i=0;i<b.E.length;i++){
+        const f = fingerprintE(b.E[i]);
+        const r = (b.y[i]-baseline(b.E[i]));
+        num += f*r;
+        den += f*f;
+      }
+    }
+    const a = (den>0) ? num/den : 0;
+
+    for(const b of [beam1,beam2]){
+      for(let i=0;i<b.E.length;i++){
+        const pred = baseline(b.E[i]) + a*fingerprintE(b.E[i]);
+        const e = b.y[i]-pred; sse += e*e;
+      }
+    }
+    return {a, sse, k:1};
+  }
+
+  function fitOscShared(beam1, beam2){
+    // Grid search over (dm2, amp) shared across beams
+    const dm2Grid = linspace(0.3, 5.5, 36);
+    const aGrid   = linspace(0.02, 0.35, 34);
+    let best = {dm2:0, amp:0, sse:1e99};
+
+    function sseFor(dm2,amp){
+      let sse=0;
+      for(const b of [beam1,beam2]){
+        for(let i=0;i<b.E.length;i++){
+          const pred = baseline(b.E[i]) + oscLE(b.L,b.E[i],dm2,amp);
+          const e = b.y[i]-pred; sse += e*e;
+        }
+      }
+      return sse;
+    }
+    for(const dm2 of dm2Grid){
+      for(const amp of aGrid){
+        const sse=sseFor(dm2,amp);
+        if(sse<best.sse) best={dm2,amp,sse};
+      }
+    }
+    return {dm2:best.dm2, amp:best.amp, sse:best.sse, k:2};
+  }
+
+  function fitMix(beam1, beam2, oscFit){
+    // Given oscFit, also fit kernel amp on residuals after oscillation
+    let num=0, den=0, sse=0;
+    for(const b of [beam1,beam2]){
+      for(let i=0;i<b.E.length;i++){
+        const f = fingerprintE(b.E[i]);
+        const predOsc = oscLE(b.L,b.E[i],oscFit.dm2,oscFit.amp);
+        const r = (b.y[i]-baseline(b.E[i]) - predOsc);
+        num += f*r; den += f*f;
+      }
+    }
+    const a = (den>0) ? num/den : 0;
+    for(const b of [beam1,beam2]){
+      for(let i=0;i<b.E.length;i++){
+        const pred = baseline(b.E[i])
+          + oscLE(b.L,b.E[i],oscFit.dm2,oscFit.amp)
+          + a*fingerprintE(b.E[i]);
+        const e = b.y[i]-pred; sse += e*e;
+      }
+    }
+    return {a, dm2:oscFit.dm2, amp:oscFit.amp, sse, k:3};
+  }
+
+  function aicbic(sse, N, k){
+    const s = Math.max(1e-12, sse);
+    const aic = N*Math.log(s/N) + 2*k;
+    const bic = N*Math.log(s/N) + k*Math.log(N);
+    return {aic,bic};
+  }
+
+  // ===== Permutation p-values (null: break alignment by shuffling binned residual vector) =====
+  function permPvals(obsCE, obsCLE, m1E, m2E, m1X, m2X, perms, rng){
+    let geE=0, geLE=0;
+    const vE = m2E.slice();
+    const vX = m2X.slice();
+    const absObsE = Math.abs(obsCE);
+    const absObsX = Math.abs(obsCLE);
+
+    for(let t=0;t<perms;t++){
+      shuffleInPlace(vE, rng);
+      shuffleInPlace(vX, rng);
+      const cE = Math.abs(corr(m1E, vE));
+      const cX = Math.abs(corr(m1X, vX));
+      if(cE >= absObsE) geE++;
+      if(cX >= absObsX) geLE++;
+    }
+    // add +1 smoothing
+    const pE = (geE+1)/(perms+1);
+    const pLE = (geLE+1)/(perms+1);
+    return {pE,pLE};
+  }
+
+  // ===== Classifier (balanced/strict/loose) =====
+  function decide(scores, strictMode){
+    const {cE,cLE, dAIC, dBIC, pE, pLE, mixLift} = scores;
+
+    // Map strictness
+    let gate=0.10, corrHi=0.60, corrLo=0.25, pHi=0.20, pLo=0.08;
+    if(strictMode==="strict"){ gate=0.20; corrHi=0.68; corrLo=0.30; pHi=0.15; pLo=0.06; }
+    if(strictMode==="loose"){  gate=0.06; corrHi=0.55; corrLo=0.22; pHi=0.25; pLo=0.10; }
+
+    // Primary: AIC/BIC direction + correlation support
+    const kernelLean = (dAIC > 0 && dBIC > 0) && (cE > corrHi) && (pE < pHi);
+    const oscLean    = (dAIC < 0 && dBIC < 0) && (cLE > corrHi) && (pLE < pHi);
+
+    // Mix detection: if mix model improves materially over both
+    // mixLift ~ how much mix beats the better of (kernel, osc)
+    const isMix = (mixLift > gate) && ( (cE>corrLo) || (cLE>corrLo) );
+
+    let verdict="NEUTRAL / INCONCLUSIVE";
+    let reason="Low separation or weak correlation evidence.";
+    if(isMix){
+      verdict="MIX-LEAN (both effects plausible)";
+      reason=`Mix model adds ${Math.round(mixLift*1000)/10}% SSE improvement vs best single model.`;
+    } else if(kernelLean && !oscLean){
+      verdict="KERNEL/SYSTEMATICS-LEAN";
+      reason="E-fingerprint stable across beams + AIC/BIC favour kernel.";
+    } else if(oscLean && !kernelLean){
+      verdict="OSCILLATION-LEAN";
+      reason="L/E structure survives across beams + AIC/BIC favour oscillation.";
+    } else {
+      // Secondary: if AIC separation is tiny, call it out explicitly
+      const sep = Math.abs(dAIC);
+      if(sep < 2.0) reason = "ΔAIC small (<2): models indistinguishable at this mock strength.";
+    }
+    return {verdict, reason};
+  }
+
+  // ===== Plotting =====
+  function drawBinned(canvas, edges, y1, y2, title){
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width = canvas.clientWidth * devicePixelRatio;
+    const H = canvas.height = canvas.clientHeight * devicePixelRatio;
+    ctx.clearRect(0,0,W,H);
+
+    const pad=18*devicePixelRatio;
+    const A={x:pad,y:pad,w:W-2*pad,h:H-2*pad};
+
+    // grid
+    ctx.strokeStyle="rgba(255,255,255,0.10)";
+    ctx.lineWidth=1*devicePixelRatio;
+    for(let i=1;i<6;i++){
+      const gx=A.x + A.w*i/6, gy=A.y + A.h*i/6;
+      ctx.beginPath(); ctx.moveTo(gx,A.y); ctx.lineTo(gx,A.y+A.h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(A.x,gy); ctx.lineTo(A.x+A.w,gy); ctx.stroke();
+    }
+
+    // axes mapping
+    const xMin=edges[0], xMax=edges[edges.length-1];
+    const yMin=-0.15, yMax=0.55;
+
+    const X=x=>A.x + (x-xMin)/(xMax-xMin)*A.w;
+    const Y=y=>A.y + (1-(y-yMin)/(yMax-yMin))*A.h;
+
+    // zero line
+    ctx.strokeStyle="rgba(255,255,255,0.26)";
+    ctx.beginPath(); ctx.moveTo(A.x,Y(0)); ctx.lineTo(A.x+A.w,Y(0)); ctx.stroke();
+
+    function line(ys, color){
+      ctx.strokeStyle=color; ctx.lineWidth=2*devicePixelRatio;
+      ctx.beginPath();
+      for(let i=0;i<ys.length;i++){
+        const xc=(edges[i]+edges[i+1])*0.5;
+        const px=X(xc), py=Y(ys[i]);
+        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.stroke();
+    }
+
+    line(y1, "rgba(255,107,107,0.95)");
+    line(y2, "rgba(77,150,255,0.95)");
+
+    // title
+    ctx.fillStyle="rgba(255,255,255,0.82)";
+    ctx.font=`${12*devicePixelRatio}px ui-monospace, monospace`;
+    ctx.fillText(title, A.x, A.y-4*devicePixelRatio);
+  }
+
+  // ===== UI =====
+  const $=id=>document.getElementById(id);
+  const statusPill=$("statusPill");
+  const truthPill=$("truthPill");
+  const logEl=$("log");
+  const stampEl=$("stamp");
+
+  function setPill(el, text, cls){
+    el.className="pill "+(cls||"");
+    el.textContent=text;
+  }
+  function log(s){ logEl.textContent=s; }
+
+  function parseLs(){
+    const parts=$("Ls").value.split(",").map(x=>parseFloat(x.trim())).filter(x=>isFinite(x));
+    return [parts[0] ?? 0.55, parts[1] ?? 0.85];
+  }
+  function parseMixW(){
+    const p=$("mixw").value.split(",").map(x=>parseFloat(x.trim())).filter(x=>isFinite(x));
+    let a=p[0] ?? 0.44, b=p[1] ?? 0.44, c=p[2] ?? 0.12;
+    const s=a+b+c; if(s<=0) return [0.44,0.44,0.12];
+    return [a/s,b/s,c/s];
+  }
+
+  let hiddenTruth="kernel";
+  function rerollHidden(seed){
+    const rng=mulberry32((seed^0xA5A5A5A5)>>>0);
+    const [wk,wo,wm]=parseMixW();
+    const r=rng();
+    hiddenTruth = (r<wk) ? "kernel" : (r < wk+wo ? "osc" : "mix");
+  }
+
+  function runOnce(doPerm){
+    setPill(statusPill, "RUNNING", "warn");
+
+    const scenario=$("scenario").value;
+    const seed=(parseInt($("seed").value,10)||777)>>>0;
+    const n=clamp(parseInt($("n").value,10)||2200, 200, 30000);
+    const noise=clamp(parseFloat($("noise").value)||0.08, 0, 0.6);
+    const kstr=clamp(parseFloat($("kstr").value)||0.22, 0, 0.8);
+    const astr=clamp(parseFloat($("astr").value)||0.18, 0, 0.8);
+    const dm2=clamp(parseFloat($("dm2").value)||1.8, 0.2, 8.0);
+    const perms=clamp(parseInt($("perms").value,10)||250, 50, 3000);
+    const strict=$("strict").value;
+    const [L1,L2]=parseLs();
+
+    rerollHidden(seed);
+
+    const truth = (scenario==="auto") ? hiddenTruth : scenario;
+    const rng = mulberry32(seed);
+
+    const beam1 = genBeam(rng, L1, n, noise, kstr, astr, dm2, truth);
+    const beam2 = genBeam(rng, L2, n, noise, kstr, astr, dm2, truth);
+
+    const Ntot = beam1.E.length + beam2.E.length;
+
+    const cs = corrScores(beam1, beam2);
+    drawBinned($("cvE"), cs.edgesE, cs.m1E, cs.m2E, "Binned residual shape vs Energy (baseline removed)");
+    drawBinned($("cvLE"), cs.edgesX, cs.m1X, cs.m2X, "Binned residual shape vs L/E (baseline removed)");
+
+    // Fits
+    const fk = fitKernelSharedAmp(beam1, beam2);
+    const fo = fitOscShared(beam1, beam2);
+    const fm = fitMix(beam1, beam2, fo);
+
+    const aK=aicbic(fk.sse, Ntot, fk.k);
+    const aO=aicbic(fo.sse, Ntot, fo.k);
+    const aM=aicbic(fm.sse, Ntot, fm.k);
+
+    const dAIC = aO.aic - aK.aic; // positive => kernel better
+    const dBIC = aO.bic - aK.bic;
+
+    // mixLift: mix beats best single model by SSE fraction
+    const bestSingleSSE = Math.min(fk.sse, fo.sse);
+    const mixLift = clamp((bestSingleSSE - fm.sse)/Math.max(1e-12,bestSingleSSE), 0, 1);
+
+    // Optional permutation
+    let pE=1, pLE=1;
+    if(doPerm){
+      const prng = mulberry32((seed^0xC0FFEE)>>>0);
+      const pv = permPvals(cs.cE, cs.cLE, cs.m1E, cs.m2E.slice(), cs.m1X, cs.m2X.slice(), perms, prng);
+      pE=pv.pE; pLE=pv.pLE;
+    }
+
+    // UI KPIs
+    $("Erc").textContent = cs.cE.toFixed(3);
+    $("LErc").textContent = cs.cLE.toFixed(3);
+    $("dAIC").textContent = (dAIC>=0?"+":"") + dAIC.toFixed(2);
+
+    $("bE").style.width  = (clamp((cs.cE+1)/2,0,1)*100).toFixed(0)+"%";
+    $("bLE").style.width = (clamp((cs.cLE+1)/2,0,1)*100).toFixed(0)+"%";
+
+    // ΔAIC bar: map |dAIC| into 0..1 with soft clip at 10
+    const aicMag = clamp(Math.abs(dAIC)/10, 0, 1);
+    $("bAIC").style.width = (aicMag*100).toFixed(0)+"%";
+
+    const pvTxt = doPerm ? `pE=${pE.toFixed(3)} | pLE=${pLE.toFixed(3)}` : "pE=— | pLE=— (run Permutation)";
+    $("pvals").textContent = pvTxt;
+    $("bP").style.width = doPerm ? (clamp(1-Math.min(pE,pLE),0,1)*100).toFixed(0)+"%" : "0%";
+
+    // Decision
+    const dec = decide({cE:cs.cE, cLE:cs.cLE, dAIC, dBIC, pE, pLE, mixLift}, strict);
+    $("verdict").textContent = dec.verdict;
+    $("note").textContent =
+      `${dec.reason}  |  Fit: kernel(a=${fk.a.toFixed(3)}), osc(dm2=${fo.dm2.toFixed(2)}, amp=${fo.amp.toFixed(2)}), mixLift=${(mixLift*100).toFixed(1)}%`;
+
+    // Pill status
+    const v=dec.verdict;
+    if(v.includes("KERNEL")) setPill(statusPill, "DONE: KERNEL-LEAN", "ok");
+    else if(v.includes("OSC")) setPill(statusPill, "DONE: OSC-LEAN", "ok");
+    else if(v.includes("MIX")) setPill(statusPill, "DONE: MIX-LEAN", "warn");
+    else setPill(statusPill, "DONE: INCONCLUSIVE", "warn");
+
+    // Truth pill (reveal what was used)
+    setPill(truthPill, `Truth used: ${truth.toUpperCase()}`, truth==="kernel" ? "warn" : (truth==="osc" ? "ok" : "bad"));
+
+    // Evidence Stamp + payload
+    const ts=new Date().toISOString();
+    const provenance=($("prov").value||"").trim();
+    const payload = {
+      v:"mocklab.v2",
+      ts,
+      scenario_selected: scenario,
+      truth_used: truth,
+      seed, n,
+      params:{ L1,L2, noise, kstr, astr, dm2, perms: doPerm?perms:0, strict },
+      metrics:{
+        corr_E: cs.cE, corr_LE: cs.cLE,
+        pE: doPerm?pE:null, pLE: doPerm?pLE:null,
+        kernel_fit:{ a:fk.a, sse:fk.sse, AIC:aK.aic, BIC:aK.bic, k:fk.k },
+        osc_fit:{ dm2:fo.dm2, amp:fo.amp, sse:fo.sse, AIC:aO.aic, BIC:aO.bic, k:fo.k },
+        mix_fit:{ a:fm.a, dm2:fm.dm2, amp:fm.amp, sse:fm.sse, AIC:aM.aic, BIC:aM.bic, k:fm.k, lift_vs_best_single:mixLift },
+        dAIC, dBIC,
+        verdict: dec.verdict
+      },
+      provenance
+    };
+    const stampBase = JSON.stringify(payload);
+    payload.evidence = {
+      hash: hash32(stampBase),
+      stamp: `QDS_KILLER_TEST_MOCK_V2 | ${ts} | seed=${seed} | verdict=${dec.verdict} | h=${hash32(stampBase)}`
+    };
+    window.__QDS_LAST_RUN__ = payload;
+    stampEl.textContent = payload.evidence.stamp;
+
+    log(`Run ${n}/beam. cE=${cs.cE.toFixed(3)} cLE=${cs.cLE.toFixed(3)} ΔAIC=${dAIC.toFixed(2)} (${dAIC>0?"kernel wins":"osc wins"}). ${doPerm?("pE="+pE.toFixed(3)+" pLE="+pLE.toFixed(3)):"(no permutation)"} Verdict=${dec.verdict}.`);
+
+    return payload;
+  }
+
+  async function runPermutation(){
+    setPill(statusPill,"PERMUTING","warn");
+    // run once without perms to build dataset, then with perms (same seed => same dataset)
+    runOnce(false);
+    const payload = runOnce(true);
+    // soften: update status pill post-perm based on verdict already set
+    return payload;
+  }
+
+  function exportJSON(){
+    const payload=window.__QDS_LAST_RUN__;
+    if(!payload){ log("Nothing to export yet. Run Protocol first."); return; }
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    const a=document.createElement("a");
+    const ts=payload.ts.replace(/[:.]/g,"-");
+    a.href=URL.createObjectURL(blob);
+    a.download=`qds_killer_test_mock_v2_${ts}_seed${payload.seed}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    log("Exported JSON run artifact.");
+  }
+
+  function copyStamp(){
+    const t=stampEl.textContent||"";
+    navigator.clipboard?.writeText(t).then(()=>log("Evidence Stamp copied."), ()=>log("Clipboard blocked — copy manually."));
+  }
+
+  async function sweep(){
+    setPill(statusPill,"SWEEP RUNNING","warn");
+    const sweepN=clamp(parseInt($("sweepN").value,10)||80, 10, 400);
+    const baseSeed=(parseInt($("seed").value,10)||777)>>>0;
+
+    const truths=["kernel","osc","mix"];
+    const M = {};
+    for(const t of truths){ M[t]={KERNEL:0,OSC:0,MIX:0,INCONC:0}; }
+
+    let inconc=0;
+    const CHUNK = 8; // mobile-safe: 6–12
+
+    // snapshot current UI so sweep doesn't fight you mid-run
+    const prevScenario = $("scenario").value;
+    const prevSeed = $("seed").value;
+
+    $("scenario").value="auto";
+
+    for(let i=0;i<sweepN;i++){
+      $("seed").value = ((baseSeed + i*97)>>>0).toString();
+
+      // fast path: no permutation in sweep
+      const p = runOnce(false);
+      const tr = p.truth_used;
+      const v = p.metrics.verdict;
+
+      let c="INCONC";
+      if(v.includes("KERNEL")) c="KERNEL";
+      else if(v.includes("OSC")) c="OSC";
+      else if(v.includes("MIX")) c="MIX";
+      else inconc++;
+
+      if(M[tr]) M[tr][c] += 1;
+
+      if((i+1) % CHUNK === 0){
+        setPill(statusPill, `SWEEP ${i+1}/${sweepN}`, "warn");
+        await new Promise(r => setTimeout(r, 0)); // yield to UI
+      }
+    }
+
+    // restore UI
+    $("scenario").value = prevScenario;
+    $("seed").value = prevSeed;
+
+    const lines=[];
+    lines.push(`=== Stress Sweep (auto truth) ===`);
+    lines.push(`runs: ${sweepN} | strict: ${$("strict").value} | perms: OFF (speed) | chunk=${CHUNK}`);
+    lines.push(`Truth\Verdict |  KERNEL   OSC    MIX   INCONC`);
+    lines.push(`------------------------------------------------`);
+    for(const t of truths){
+      const r=M[t];
+      lines.push(`${t.padEnd(12)}|  ${String(r.KERNEL).padStart(6)}  ${String(r.OSC).padStart(5)}  ${String(r.MIX).padStart(5)}  ${String(r.INCONC).padStart(6)}`);
+    }
+    lines.push(`------------------------------------------------`);
+    lines.push(`inconclusive total: ${inconc}`);
+    $("sweepOut").textContent = lines.join("
+");
+
+    setPill(statusPill,"SWEEP DONE","ok");
+    log(`Sweep done: ${sweepN} runs. Inconclusive=${inconc}.`);
+}
+
+    // restore seed
+    $("seed").value = baseSeed;
+
+    // format sweep output
+    const lines=[];
+    lines.push(`=== Stress Sweep (auto truth) ===`);
+    lines.push(`runs: ${sweepN} | strict: ${$("strict").value} | perms: OFF (speed)`);
+    lines.push(`Truth\\Verdict |  KERNEL   OSC    MIX   INCONC`);
+    lines.push(`------------------------------------------------`);
+    for(const t of truths){
+      const r=M[t];
+      lines.push(`${t.padEnd(12)}|  ${String(r.KERNEL).padStart(6)}  ${String(r.OSC).padStart(5)}  ${String(r.MIX).padStart(5)}  ${String(r.INCONC).padStart(6)}`);
+    }
+    lines.push(`------------------------------------------------`);
+    lines.push(`inconclusive total: ${inconc}`);
+    $("sweepOut").textContent = lines.join("\n");
+
+    setPill(statusPill,"SWEEP DONE","ok");
+    log(`Sweep done: ${sweepN} runs. Inconclusive=${inconc}.`);
+  }
+
+  // Buttons
+  $("run").addEventListener("click", ()=>runOnce(false));
+  $("perm").addEventListener("click", ()=>runPermutation());
+  $("sweep").addEventListener("click", ()=>sweep());
+  $("export").addEventListener("click", exportJSON);
+  $("copyStamp").addEventListener("click", copyStamp);
+
+  // Boot
+  setPill(statusPill,"IDLE","");
+  setPill(truthPill,"Truth: —","");
+  log("(idle)");
+})();
+</script>
+</body>
+</html>
