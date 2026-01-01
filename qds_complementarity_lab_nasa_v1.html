@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="color-scheme" content="dark"/>
+<title>QDS Complementarity Lab — NASA Style</title>
+<style>
+  :root{
+    --bg0:#05070b; --bg1:#070b12; --bg2:#090f1a;
+    --panel: rgba(16,22,34,.72);
+    --panel2: rgba(12,18,28,.62);
+    --stroke: rgba(140,170,230,.18);
+    --stroke2: rgba(80,120,200,.22);
+    --text:#e7eefc; --muted:#a8b7d6;
+    --neonA:#5ee7ff; /* cyan */
+    --neonB:#79ffb3; /* green */
+    --warn:#ffd166;  /* amber */
+    --bad:#ff6b6b;   /* red-ish but not pink */
+    --ok:#79ffb3;
+    --shadow: 0 16px 60px rgba(0,0,0,.55);
+    --r:18px;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  html,body{height:100%}
+  body{
+    margin:0;
+    color:var(--text);
+    font-family:var(--sans);
+    background:
+      radial-gradient(1200px 700px at 15% 10%, rgba(94,231,255,.08), transparent 55%),
+      radial-gradient(900px 600px at 75% 20%, rgba(121,255,179,.07), transparent 55%),
+      radial-gradient(1200px 900px at 45% 110%, rgba(90,120,255,.06), transparent 60%),
+      linear-gradient(180deg, var(--bg0), var(--bg2));
+    overflow-x:hidden;
+  }
+
+  .wrap{
+    max-width: 1280px;
+    margin: 18px auto 28px;
+    padding: 0 14px;
+  }
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; margin: 8px 2px 14px;
+  }
+
+  .brand{
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .title{
+    font-weight:800;
+    letter-spacing:.3px;
+    font-size: 16px;
+  }
+  .sub{
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing:.2px;
+  }
+  .stamp{
+    font-family:var(--mono);
+    font-size:12px;
+    padding:8px 10px;
+    border:1px solid var(--stroke);
+    border-radius:999px;
+    background: rgba(8,12,18,.55);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1.15fr .85fr;
+    gap:14px;
+    align-items:start;
+  }
+
+  .card{
+    background: var(--panel);
+    border:1px solid var(--stroke);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+  }
+
+  .card .hd{
+    display:flex; align-items:baseline; justify-content:space-between;
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid rgba(140,170,230,.10);
+  }
+  .card .hd h3{
+    margin:0;
+    font-size: 13px;
+    letter-spacing:.35px;
+    font-weight:800;
+    text-transform:uppercase;
+    color: rgba(231,238,252,.92);
+  }
+  .card .hd .hint{
+    font-size:12px;
+    color:var(--muted);
+  }
+  .card .bd{ padding: 12px 14px 14px; }
+
+  /* Left: plot */
+  .plotBox{
+    height: 190px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(6,10,18,.6), rgba(4,8,14,.6));
+    border:1px solid rgba(120,160,230,.14);
+    position:relative;
+    overflow:hidden;
+  }
+  canvas{ display:block; width:100%; height:100%; }
+
+  .metrics{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+    margin-top:12px;
+  }
+  .mBox{
+    background: var(--panel2);
+    border:1px solid rgba(140,170,230,.12);
+    border-radius: 14px;
+    padding:10px 10px 10px;
+  }
+  .mLabel{
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .mVal{
+    font-family: var(--mono);
+    font-size: 16px;
+    letter-spacing:.2px;
+  }
+  .chkLine{
+    margin-top:10px;
+    padding:10px;
+    border-radius:14px;
+    border:1px solid rgba(140,170,230,.12);
+    background: rgba(8,12,18,.35);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  .chkLine .left{
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .chkLine .right{
+    font-family: var(--mono);
+    font-size: 14px;
+    padding:6px 10px;
+    border-radius: 999px;
+    border:1px solid rgba(140,170,230,.16);
+  }
+  .badge-ok{ color: var(--ok); }
+  .badge-warn{ color: var(--warn); }
+  .badge-bad{ color: var(--bad); }
+
+  .formula{
+    margin-top:10px;
+    color: rgba(200,214,244,.85);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+  .formula code{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: rgba(231,238,252,.92);
+  }
+
+  /* Right: controls */
+  .controls{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .row{
+    display:grid;
+    grid-template-columns: 1fr 70px;
+    gap:10px;
+    align-items:center;
+  }
+  .row label{
+    font-size:12px;
+    color:var(--muted);
+  }
+  .row .num{
+    font-family: var(--mono);
+    font-size:12px;
+    text-align:right;
+    color: rgba(231,238,252,.92);
+  }
+  input[type="range"]{
+    width:100%;
+    accent-color: var(--neonA);
+  }
+  .row.green input[type="range"]{ accent-color: var(--neonB); }
+
+  .btns{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:6px;
+  }
+  button{
+    background: rgba(10,16,26,.65);
+    border:1px solid rgba(140,170,230,.18);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 14px;
+    font-weight:700;
+    letter-spacing:.2px;
+    cursor:pointer;
+  }
+  button:hover{ border-color: rgba(94,231,255,.35); }
+  button.primary{
+    border-color: rgba(94,231,255,.32);
+    box-shadow: 0 0 0 1px rgba(94,231,255,.10) inset;
+  }
+  button.danger{
+    border-color: rgba(255,107,107,.25);
+  }
+
+  .protoCard .bd{ padding-top: 10px; }
+  .statusLine{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:10px; margin-bottom:10px;
+  }
+  .statusPill{
+    font-family:var(--mono);
+    font-size:12px;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid rgba(140,170,230,.18);
+    color: rgba(231,238,252,.92);
+    background: rgba(8,12,18,.35);
+  }
+
+  .scoreArea{
+    border:1px solid rgba(140,170,230,.12);
+    background: rgba(8,12,18,.30);
+    border-radius: 14px;
+    padding: 10px;
+  }
+
+  .scoreCanvas{
+    height:120px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(6,10,18,.55), rgba(4,8,14,.55));
+    border:1px solid rgba(120,160,230,.12);
+    overflow:hidden;
+    position:relative;
+  }
+
+  .log{
+    margin-top:10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.35;
+    white-space: pre-wrap;
+    max-height: 160px;
+    overflow:auto;
+    padding: 10px;
+    border-radius: 14px;
+    border:1px solid rgba(140,170,230,.12);
+    background: rgba(6,10,16,.35);
+  }
+
+  .diag{
+    margin-top:10px;
+    padding: 10px;
+    border-radius: 14px;
+    border:1px solid rgba(140,170,230,.12);
+    background: rgba(8,12,18,.30);
+    font-size:12px;
+    color: rgba(200,214,244,.92);
+    display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  }
+  .diag b{ color: var(--text); }
+  .diag .kv{ font-family:var(--mono); }
+
+  .factorBox{
+    margin-top:10px;
+    border:1px solid rgba(140,170,230,.12);
+    background: rgba(8,12,18,.30);
+    border-radius: 14px;
+    padding:10px;
+  }
+  .barsTop{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:8px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .barRow{
+    display:grid;
+    grid-template-columns: 42px 1fr 70px;
+    gap:10px;
+    align-items:center;
+    margin: 8px 0;
+  }
+  .barRow .k{ font-family:var(--mono); font-size: 12px; color: rgba(231,238,252,.92); }
+  .bar{
+    height: 10px;
+    border-radius: 999px;
+    border:1px solid rgba(140,170,230,.14);
+    background: rgba(10,16,26,.55);
+    overflow:hidden;
+    position:relative;
+  }
+  .bar > i{
+    display:block; height:100%;
+    width:0%;
+    background: linear-gradient(90deg, rgba(94,231,255,.85), rgba(121,255,179,.85));
+  }
+  
+
+  /* PATCH: warm-spectrum factor bars (no pink) */
+  #bVt{ background: linear-gradient(90deg, rgba(255,107,107,.92), rgba(255,209,102,.92)); }
+  #bVs{ background: linear-gradient(90deg, rgba(255,209,102,.92), rgba(121,255,179,.86)); }
+  #bVn{ background: linear-gradient(90deg, rgba(255,209,102,.35), rgba(94,231,255,.86)); }
+  #bV { background: linear-gradient(90deg, rgba(94,231,255,.86),  rgba(121,255,179,.86)); }
+.barRow .v{ font-family:var(--mono); font-size:12px; text-align:right; color: rgba(231,238,252,.92); }
+
+  .phaseBox{
+    margin-top:10px;
+    border:1px solid rgba(140,170,230,.12);
+    background: rgba(8,12,18,.30);
+    border-radius:14px;
+    padding:10px;
+  }
+  .phaseTop{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:10px; flex-wrap:wrap;
+    margin-bottom:8px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .phaseCanvas{
+    height: 150px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(6,10,18,.55), rgba(4,8,14,.55));
+    border:1px solid rgba(120,160,230,.12);
+    overflow:hidden;
+  }
+  .tiny{
+    margin-top:8px;
+    font-size: 11px;
+    color: rgba(180,198,232,.85);
+  }
+
+  .foot{
+    margin-top: 10px;
+    color: rgba(170,188,222,.85);
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  @media (max-width: 980px){
+    .grid{ grid-template-columns: 1fr; }
+  }
+</style>
+
+<style id="safe-stamp-footer-css">
+.status-stamp{position:fixed;top:14px;right:14px;z-index:9999;pointer-events:none}
+.status-stamp .pill{display:inline-block;padding:8px 12px;border-radius:999px;
+  border:1px solid rgba(140,190,255,0.25);background:rgba(8,12,20,0.62);backdrop-filter:blur(10px);
+  font-size:12px;letter-spacing:.3px}
+.safe-footer{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9999;
+  pointer-events:none;max-width:min(92vw,980px);text-align:center}
+.safe-footer .pill{display:inline-block;padding:10px 14px;border-radius:999px;
+  border:1px solid rgba(140,190,255,0.18);background:rgba(6,10,18,0.70);backdrop-filter:blur(10px);
+  font-size:12px;letter-spacing:.15px}
+ (max-width:520px){
+  .status-stamp{top:10px;right:10px}
+  .status-stamp .pill{font-size:10px;padding:7px 10px}
+  .safe-footer .pill{font-size:11px;padding:9px 12px}
+}
+</style>
+</head>
+
+<body>
+<div class="status-stamp" aria-hidden="true"><span class="pill">STATUS: DEMO KERNEL • COMPLEMENTARITY-CONSISTENT</span></div>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <div class="title">QDS Complementarity Lab</div>
+      <div class="sub">τ / λ as tunable coherence knobs • offline • deterministic • no external calls</div>
+    </div>
+    <div class="stamp" id="stamp">IDLE</div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT -->
+    <section class="card">
+      <div class="hd">
+        <h3>Interference View</h3>
+        <div class="hint">fringes ∝ V, which-path info ∝ D</div>
+      </div>
+      <div class="bd">
+        <div class="plotBox">
+          <canvas id="wave"></canvas>
+        </div>
+
+        <div class="metrics">
+          <div class="mBox">
+            <div class="mLabel">Visibility (V)</div>
+            <div class="mVal" id="V">—</div>
+          </div>
+          <div class="mBox">
+            <div class="mLabel">Distinguishability (D)</div>
+            <div class="mVal" id="D">—</div>
+          </div>
+        </div>
+
+        <div class="chkLine">
+          <div class="left">
+            <div class="mLabel" style="margin:0">Check (V² + D²)</div>
+            <div class="mVal" id="CHK">—</div>
+          </div>
+          <div class="right" id="badge">—</div>
+        </div>
+
+        <div class="formula">
+          Model:
+          <code>
+            V = exp(-|Δt|/τc) · exp(-(Δx)²/(2λc²)) · exp(-g·σ²)
+          </code>
+          and
+          <code>
+            D = tanh(g·γ)
+          </code>
+          (demo kernel; not a claim about any specific apparatus).
+        </div>
+
+        <div class="foot">
+          Tip: crank Δx above λc or Δt above τc and watch fringes wash out.
+          Battery analogy later: τc ≈ “memory time”, λc ≈ “correlation length”.
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="controls">
+      <section class="card">
+        <div class="hd">
+          <h3>Kernel knobs</h3>
+          <div class="hint">safe demo ranges</div>
+        </div>
+        <div class="bd">
+          <div class="row">
+            <label for="tau">τc (temporal coherence)</label>
+            <div class="num" id="tauN">—</div>
+            <input id="tau" type="range" min="0.05" max="8.0" step="0.05" value="3.5"/>
+          </div>
+
+          <div class="row green">
+            <label for="lam">λc (spatial coherence)</label>
+            <div class="num" id="lamN">—</div>
+            <input id="lam" type="range" min="0.1" max="25.0" step="0.1" value="12.0"/>
+          </div>
+
+          <div class="row">
+            <label for="dt">Δt (path time separation)</label>
+            <div class="num" id="dtN">—</div>
+            <input id="dt" type="range" min="0.0" max="12.0" step="0.05" value="0.3"/>
+          </div>
+
+          <div class="row">
+            <label for="dx">Δx (path separation)</label>
+            <div class="num" id="dxN">—</div>
+            <input id="dx" type="range" min="0.0" max="30.0" step="0.1" value="2.0"/>
+          </div>
+
+          <div class="row green">
+            <label for="sig2">σ² (substrate variance)</label>
+            <div class="num" id="sig2N">—</div>
+            <input id="sig2" type="range" min="0.0" max="2.0" step="0.01" value="0.08"/>
+          </div>
+
+          <div class="row">
+            <label for="g">g (which-path coupling)</label>
+            <div class="num" id="gN">—</div>
+            <input id="g" type="range" min="0.0" max="5.0" step="0.01" value="0.4"/>
+          </div>
+
+          <div class="btns">
+            <button id="resetBtn">Reset</button>
+            <button id="randBtn">Randomise</button>
+            <button class="primary" id="exportBtn">Export JSON</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card protoCard">
+        <div class="hd">
+          <h3>Protocol runner</h3>
+          <div class="hint">one button • 8 cases</div>
+        </div>
+        <div class="bd">
+          <div class="btns" style="margin-top:0">
+            <button class="primary" id="runBtn">Run Protocol (8 cases)</button>
+            <button class="danger" id="clearBtn">Clear Log</button>
+          </div>
+
+          <div class="statusLine">
+            <div style="font-size:12px;color:var(--muted)">Protocol scoreboard</div>
+            <div class="statusPill" id="protoStatus">idle</div>
+          </div>
+
+          <div class="scoreArea">
+            <div class="scoreCanvas"><canvas id="score"></canvas></div>
+
+            <div class="diag" id="diag">
+              <span><b>Live diagnosis</b> <span class="kv" id="diagTxt">—</span></span>
+              <span class="kv" id="diagChk">chk=—</span>
+            </div>
+
+            <div class="factorBox">
+              <div class="barsTop">
+                <span>Factor bars</span>
+                <span class="kv">Vt · Vs · Vn → V</span>
+              </div>
+              <div class="barRow">
+                <div class="k">Vt</div>
+                <div class="bar"><i id="bVt"></i></div>
+                <div class="v" id="vVt">—</div>
+              </div>
+              <div class="barRow">
+                <div class="k">Vs</div>
+                <div class="bar"><i id="bVs"></i></div>
+                <div class="v" id="vVs">—</div>
+              </div>
+              <div class="barRow">
+                <div class="k">Vn</div>
+                <div class="bar"><i id="bVn"></i></div>
+                <div class="v" id="vVn">—</div>
+              </div>
+              <div class="barRow">
+                <div class="k">V</div>
+                <div class="bar"><i id="bV"></i></div>
+                <div class="v" id="vV">—</div>
+              </div>
+            </div>
+
+            <div class="phaseBox">
+              <div class="phaseTop">
+                <span>Phase map (Δt/τc vs Δx/λc)</span>
+                <span>
+                  <label style="display:inline-flex;align-items:center;gap:8px">
+                    <input type="checkbox" id="freezeMap"/> Freeze
+                  </label>
+                  <button id="recalcMap" style="padding:8px 10px;border-radius:12px">Recalc</button>
+                </span>
+              </div>
+              <div class="phaseCanvas"><canvas id="phase"></canvas></div>
+              <div class="tiny">Colour = V (bright = fringes survive, dark = washed out). Current point marked.</div>
+            </div>
+
+            <div class="log" id="log"></div>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* QDS Complementarity Lab — NASA Style v1 (offline) */
+
+const $ = (id)=>document.getElementById(id);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const fmt=(x,n=3)=> (isFinite(x)? Number(x).toFixed(n) : "—");
+const nowISO=()=> new Date().toISOString();
+
+const state = {
+  tau: 3.5, lam: 12.0, dt: 0.3, dx: 2.0, sig2: 0.08, g: 0.4,
+  out: null,
+  proto: { running:false, results:[], idx:0 }
+};
+
+function readSliders(){
+  state.tau = parseFloat($("tau").value);
+  state.lam = parseFloat($("lam").value);
+  state.dt  = parseFloat($("dt").value);
+  state.dx  = parseFloat($("dx").value);
+  state.sig2= parseFloat($("sig2").value);
+  state.g   = parseFloat($("g").value);
+}
+
+function writeNums(){
+  $("tauN").textContent = fmt(state.tau,2);
+  $("lamN").textContent = fmt(state.lam,2);
+  $("dtN").textContent  = fmt(state.dt,2);
+  $("dxN").textContent  = fmt(state.dx,2);
+  $("sig2N").textContent= fmt(state.sig2,2);
+  $("gN").textContent   = fmt(state.g,2);
+}
+
+function model(p){
+  // Factors:
+  const Vt = Math.exp(-Math.abs(p.dt)/Math.max(p.tau,1e-9));
+  const Vs = Math.exp(-(p.dx*p.dx)/(2*Math.max(p.lam*p.lam,1e-9)));
+  const Vn = Math.exp(-p.g * p.sig2);
+
+  // Visibility:
+  let V = Vt * Vs * Vn;
+  V = clamp(V, 0, 1);
+
+  // Distinguishability (demo): choose gamma ~ dx/lam + dt/tau + sig2 (bounded)
+  const gamma = 0.65*(Math.abs(p.dt)/Math.max(p.tau,1e-9)) + 0.65*(Math.abs(p.dx)/Math.max(p.lam,1e-9)) + 0.35*p.sig2;
+  let D = Math.tanh(p.g * gamma);
+  D = clamp(D, 0, 1);
+
+  const chk = V*V + D*D;
+  return {V, D, Vt, Vs, Vn, chk};
+}
+
+function setBadge(chk){
+  const b = $("badge");
+  let cls="badge-warn", txt="OK-ish";
+  if(chk <= 1.05){ cls="badge-ok"; txt="PASS"; }
+  if(chk > 1.15){ cls="badge-bad"; txt="WARN"; }
+  b.className = "right " + cls;
+  b.textContent = `chk=${fmt(chk,3)} • ${txt}`;
+}
+
+function drawWave(){
+  const c = $("wave");
+  const r = c.getBoundingClientRect();
+  const dpr = Math.max(1, window.devicePixelRatio||1);
+  c.width = Math.floor(r.width*dpr);
+  c.height= Math.floor(r.height*dpr);
+  const ctx = c.getContext("2d");
+
+  const W=c.width, H=c.height;
+  ctx.clearRect(0,0,W,H);
+
+  // grid line
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = "rgba(140,170,230,.18)";
+  ctx.lineWidth = 1*dpr;
+  ctx.beginPath();
+  ctx.moveTo(0, H*0.5);
+  ctx.lineTo(W, H*0.5);
+  ctx.stroke();
+
+  // wave based on V
+  const out = state.out || {V:0};
+  const A = (H*0.35) * out.V;
+  const cycles = 4.5;
+  ctx.strokeStyle = "rgba(231,238,252,.92)";
+  ctx.lineWidth = 2*dpr;
+  ctx.beginPath();
+  for(let i=0;i<=W;i++){
+    const t = i/W;
+    const y = H*0.5 + Math.sin(t*cycles*Math.PI*2) * A;
+    if(i===0) ctx.moveTo(i,y); else ctx.lineTo(i,y);
+  }
+  ctx.stroke();
+
+  // "fringe strip"
+  const stripY = H*0.72;
+  const stripH = H*0.12;
+  const base = 0.15 + 0.85*out.V;
+  for(let i=0;i<60;i++){
+    const x0 = (i/60)*W;
+    const x1 = ((i+1)/60)*W;
+    const phase = Math.sin(i*0.55);
+    const a = clamp(base*(0.45+0.55*phase*phase),0,1);
+    ctx.fillStyle = `rgba(94,231,255,${0.10 + 0.25*a})`;
+    ctx.fillRect(x0, stripY, x1-x0, stripH);
+  }
+}
+
+function drawScoreboard(){
+  const c = $("score");
+  const r = c.getBoundingClientRect();
+  const dpr = Math.max(1, window.devicePixelRatio||1);
+  c.width = Math.floor(r.width*dpr);
+  c.height= Math.floor(r.height*dpr);
+  const ctx = c.getContext("2d");
+
+  const W=c.width, H=c.height;
+  ctx.clearRect(0,0,W,H);
+
+  // axes
+  ctx.strokeStyle="rgba(140,170,230,.18)";
+  ctx.lineWidth=1*dpr;
+  ctx.beginPath();
+  ctx.moveTo(10*dpr, H-18*dpr);
+  ctx.lineTo(W-10*dpr, H-18*dpr);
+  ctx.stroke();
+
+  const res = state.proto.results;
+  if(!res.length) return;
+
+  const n = res.length;
+  const padL = 10*dpr, padR = 10*dpr, padB = 18*dpr, padT = 10*dpr;
+  const areaW = W - padL - padR;
+  const areaH = H - padT - padB;
+
+  const bw = areaW / Math.max(n,1);
+  for(let i=0;i<n;i++){
+    const it = res[i];
+    const V = clamp(it.out?.V ?? 0,0,1);
+    const D = clamp(it.out?.D ?? 0,0,1);
+
+    // stacked-ish bars: V (cyan), D (green) side-by-side compact
+    const x = padL + i*bw + bw*0.12;
+    const w = bw*0.32;
+    const hV = areaH * V;
+    const hD = areaH * D;
+
+    ctx.fillStyle = "rgba(94,231,255,.75)";
+    ctx.fillRect(x, padT + (areaH-hV), w, hV);
+
+    ctx.fillStyle = "rgba(121,255,179,.70)";
+    ctx.fillRect(x + w + bw*0.10, padT + (areaH-hD), w, hD);
+
+    // label
+    ctx.fillStyle = "rgba(170,188,222,.85)";
+    ctx.font = `${10*dpr}px ${getComputedStyle(document.body).fontFamily}`;
+    const name = (it.name||"").slice(0,6);
+    ctx.fillText(name, x, H-6*dpr);
+  }
+}
+
+function setFactorBars(out){
+  const set = (id,val)=>{
+    $(id).style.width = (clamp(val,0,1)*100).toFixed(1)+"%";
+  };
+  set("bVt", out.Vt);
+  set("bVs", out.Vs);
+  set("bVn", out.Vn);
+  set("bV",  out.V);
+
+  $("vVt").textContent = fmt(out.Vt,3);
+  $("vVs").textContent = fmt(out.Vs,3);
+  $("vVn").textContent = fmt(out.Vn,3);
+  $("vV").textContent  = fmt(out.V,3);
+}
+
+function diagnosis(out){
+  // Simple human-readable diagnosis
+  const dtR = Math.abs(state.dt)/Math.max(state.tau,1e-9);
+  const dxR = Math.abs(state.dx)/Math.max(state.lam,1e-9);
+  const nR  = state.g * state.sig2;
+
+  let msg = "stable";
+  if(out.V < 0.15 && out.D > 0.6) msg = "which-path dominated (fringes suppressed)";
+  else if(out.V > 0.6 && out.D < 0.35) msg = "interference dominated (clean fringes)";
+  else if(out.V < 0.25) msg = "washed out (decoherence / separation)";
+  else if(out.D > 0.7) msg = "high distinguishability (path info strong)";
+  else msg = "mixed regime";
+
+  // most likely killer
+  const killer = (dtR>dxR && dtR>nR) ? "Δt/τc"
+               : (dxR>dtR && dxR>nR) ? "Δx/λc"
+               : "g·σ²";
+
+  return {msg, killer, dtR, dxR, nR};
+}
+
+function drawPhaseMap(force=false){
+  const freeze = $("freezeMap").checked;
+  if(freeze && !force) return;
+
+  const c = $("phase");
+  const r = c.getBoundingClientRect();
+  const dpr = Math.max(1, window.devicePixelRatio||1);
+  c.width = Math.floor(r.width*dpr);
+  c.height= Math.floor(r.height*dpr);
+  const ctx = c.getContext("2d");
+
+  const W=c.width, H=c.height;
+  ctx.clearRect(0,0,W,H);
+
+  // map ranges
+  const xMax = 3.0; // Δt/τ
+  const yMax = 3.0; // Δx/λ
+
+  // draw heatmap cells
+  const nx=36, ny=22;
+  for(let iy=0; iy<ny; iy++){
+    for(let ix=0; ix<nx; ix++){
+      const x = (ix+0.5)/nx * xMax;
+      const y = (iy+0.5)/ny * yMax;
+
+      // Hold tau/lam/sig2/g fixed; vary dt/dx by ratios
+      const p = {
+        tau: state.tau, lam: state.lam,
+        dt: x*state.tau,
+        dx: y*state.lam,
+        sig2: state.sig2,
+        g: state.g
+      };
+      const out = model(p);
+      const v = clamp(out.V,0,1);
+
+      // neon-ish: cyan brightness tied to V
+      const a = 0.06 + 0.50*v;
+      ctx.fillStyle = `rgba(94,231,255,${a})`;
+      const x0 = ix/nx*W, y0 = iy/ny*H;
+      ctx.fillRect(x0, y0, W/nx+1, H/ny+1);
+    }
+  }
+
+  // axes & labels
+  ctx.strokeStyle="rgba(140,170,230,.20)";
+  ctx.lineWidth=1*dpr;
+  ctx.strokeRect(0.5*dpr,0.5*dpr,W-1*dpr,H-1*dpr);
+
+  ctx.fillStyle="rgba(170,188,222,.85)";
+  ctx.font = `${11*dpr}px ${getComputedStyle(document.body).fontFamily}`;
+  ctx.fillText("Δt/τc →", 10*dpr, 16*dpr);
+  ctx.save();
+  ctx.translate(10*dpr, H-10*dpr);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText("Δx/λc →", 0, 0);
+  ctx.restore();
+
+  // current point marker
+  const px = clamp(Math.abs(state.dt)/Math.max(state.tau,1e-9), 0, xMax);
+  const py = clamp(Math.abs(state.dx)/Math.max(state.lam,1e-9), 0, yMax);
+  const mx = (px/xMax)*W;
+  const my = (py/yMax)*H;
+
+  ctx.strokeStyle="rgba(121,255,179,.95)";
+  ctx.lineWidth=2*dpr;
+  ctx.beginPath();
+  ctx.arc(mx,my,5*dpr,0,Math.PI*2);
+  ctx.stroke();
+}
+
+function update(){
+  readSliders();
+  writeNums();
+
+  const out = model(state);
+  state.out = out;
+
+  $("V").textContent = fmt(out.V,3);
+  $("D").textContent = fmt(out.D,3);
+  $("CHK").textContent = fmt(out.chk,3);
+  setBadge(out.chk);
+
+  const d = diagnosis(out);
+  $("diagTxt").textContent = `${d.msg} • killer=${d.killer}`;
+  $("diagChk").textContent = `chk=${fmt(out.chk,3)}  V=${fmt(out.V,3)}  D=${fmt(out.D,3)}`;
+
+  setFactorBars(out);
+
+  drawWave();
+  drawScoreboard();
+  drawPhaseMap(false);
+
+  $("stamp").textContent = state.proto.running ? `RUNNING ${state.proto.idx}/8` : "IDLE";
+}
+
+function setParams(p){
+  // sliders
+  $("tau").value = p.tau;
+  $("lam").value = p.lam;
+  $("dt").value  = p.dt;
+  $("dx").value  = p.dx;
+  $("sig2").value= p.sig2;
+  $("g").value   = p.g;
+  update();
+}
+
+function exportJSON(){
+  const payload = {
+    ts: nowISO(),
+    params: { tau:state.tau, lam:state.lam, dt:state.dt, dx:state.dx, sig2:state.sig2, g:state.g },
+    out: state.out
+  };
+  const txt = JSON.stringify(payload, null, 2);
+  // copy-to-clipboard best effort (offline safe)
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>{
+      logLine("[OK] JSON copied to clipboard.");
+    }).catch(()=>{});
+  }
+  const blob = new Blob([txt], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "qds_complementarity_export.json";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+
+function logLine(s){
+  const box = $("log");
+  box.textContent += s + "\n";
+  box.scrollTop = box.scrollHeight;
+}
+
+function clearLog(){
+  $("log").textContent = "";
+}
+
+function randIn(min,max,step){
+  const n = min + Math.random()*(max-min);
+  const v = step ? Math.round(n/step)*step : n;
+  return v;
+}
+
+function randomise(){
+  const p = {
+    tau: randIn(0.2,8.0,0.05),
+    lam: randIn(0.5,25.0,0.1),
+    dt:  randIn(0.0,12.0,0.05),
+    dx:  randIn(0.0,30.0,0.1),
+    sig2:randIn(0.0,2.0,0.01),
+    g:   randIn(0.0,5.0,0.01),
+  };
+  setParams(p);
+}
+
+function reset(){
+  setParams({tau:3.5, lam:12.0, dt:0.3, dx:2.0, sig2:0.08, g:0.4});
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+/* Protocol cases */
+const PROTOCOL_CASES = [
+  {name:"Bohr",    params:{tau:3.5, lam:12.0, dt:0.3, dx:2.0,  sig2:0.08, g:0.40}},
+  {name:"EinTry",  params:{tau:6.7, lam:16.4, dt:3.9, dx:24.9, sig2:1.27, g:3.21}},
+  {name:"HighDt",  params:{tau:3.0, lam:10.0, dt:9.5, dx:10.0, sig2:0.25, g:1.40}},
+  {name:"HighDx",  params:{tau:3.0, lam:10.0, dt:2.5, dx:25.6, sig2:0.25, g:1.40}},
+  {name:"Noise",   params:{tau:3.0, lam:10.0, dt:2.5, dx:10.0, sig2:1.60, g:1.40}},
+  {name:"TauUp",   params:{tau:8.0, lam:10.0, dt:2.5, dx:10.0, sig2:0.25, g:1.40}},
+  {name:"LamUp",   params:{tau:3.0, lam:20.0, dt:2.5, dx:10.0, sig2:0.25, g:1.40}},
+  {name:"Balance", params:{tau:3.0, lam:12.0, dt:2.5, dx:10.0, sig2:0.25, g:1.40}},
+];
+
+async function runProtocol(){
+  if(state.proto.running) return;
+  state.proto.running = true;
+  state.proto.results = [];
+  state.proto.idx = 0;
+  $("protoStatus").textContent = "running…";
+  logLine(`[RUN] protocol start (${PROTOCOL_CASES.length} cases)`);
+
+  try{
+    for(let i=0;i<PROTOCOL_CASES.length;i++){
+      state.proto.idx = i+1;
+      $("protoStatus").textContent = `running… (${state.proto.idx}/${PROTOCOL_CASES.length})`;
+      $("stamp").textContent = `RUNNING ${state.proto.idx}/8`;
+
+      const c = PROTOCOL_CASES[i];
+      try{
+        setParams(c.params);
+        await sleep(60); // paint
+        const out = model(state);
+        state.proto.results.push({name:c.name, params:c.params, out});
+        logLine(`[PASS] ${c.name} V=${fmt(out.V,3)} D=${fmt(out.D,3)} chk=${fmt(out.chk,3)}`);
+      }catch(e){
+        state.proto.results.push({name:c.name, params:c.params, out:{V:0,D:0,chk:0,error:String(e)}});
+        logLine(`[ERR] ${c.name} ${String(e)}`);
+      }
+      drawScoreboard();
+      await sleep(80);
+    }
+    $("protoStatus").textContent = "done";
+    logLine("[DONE] protocol complete");
+  } finally {
+    state.proto.running = false;
+    $("stamp").textContent = "IDLE";
+  }
+}
+
+function hook(){
+  // slider listeners
+  ["tau","lam","dt","dx","sig2","g"].forEach(id=>{
+    $(id).addEventListener("input", ()=>{
+      update();
+    }, {passive:true});
+  });
+
+  $("exportBtn").addEventListener("click", exportJSON);
+  $("randBtn").addEventListener("click", randomise);
+  $("resetBtn").addEventListener("click", reset);
+  $("runBtn").addEventListener("click", runProtocol);
+  $("clearBtn").addEventListener("click", clearLog);
+  $("recalcMap").addEventListener("click", ()=>drawPhaseMap(true));
+
+  // first paint
+  clearLog();
+  logLine("[OK] offline • deterministic • no external calls");
+  update();
+
+  // repaint on resize
+  let t=null;
+  window.addEventListener("resize", ()=>{
+    clearTimeout(t);
+    t=setTimeout(()=>{ update(); }, 120);
+  }, {passive:true});
+}
+
+hook();
+</script>
+
+<div class="safe-footer" aria-hidden="true"><span class="pill">This tool does not prove quantum mechanics. It shows which assumptions kill interference.</span></div>
+</body>
+</html>
